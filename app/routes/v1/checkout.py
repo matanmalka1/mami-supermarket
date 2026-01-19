@@ -7,7 +7,7 @@ from uuid import UUID
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from ..middleware.error_handler import DomainError
+from ...middleware.error_handler import DomainError
 from ..schemas.checkout import CheckoutConfirmRequest, CheckoutPreviewRequest
 from ..services.checkout import CheckoutService
 from ..utils.responses import success_envelope

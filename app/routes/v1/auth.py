@@ -3,7 +3,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
-from ..middleware.error_handler import DomainError
+from ...middleware.error_handler import DomainError
 from ..extensions import limiter
 from ..services.audit import AuditService
 from ..utils.responses import success_envelope

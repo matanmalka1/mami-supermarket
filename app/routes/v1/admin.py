@@ -6,7 +6,7 @@ from uuid import UUID
 
 from flask import Blueprint, jsonify, request
 
-from ..middleware.auth import require_role
+from ...middleware.auth import require_role
 from ..models.enums import Role
 from ..schemas.branches import (
     BranchAdminRequest,
