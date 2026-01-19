@@ -168,17 +168,15 @@ cp .env.example .env
 # DELIVERY_SOURCE_BRANCH_ID
 
 # 6. Initialize DB & run migrations
-flask db upgrade
+./venv/bin/alembic upgrade head
 
-# 7. (optional) Create first admin user
-python manage.py create-admin
+# 7. Seed warehouse + delivery slots (dev)
+./venv/bin/python scripts/seed.py
 
 # 8. Run development server
-python run.py
-# or
-flask run --debug
-# or for production
-gunicorn -w 4 -b 0.0.0.0:5000 "wsgi:application"
+./venv/bin/python run.py
+# or for production (Gunicorn)
+./scripts/gunicorn.sh
 ```
 
 ## Environment Variables (.env)

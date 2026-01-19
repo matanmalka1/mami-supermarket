@@ -256,95 +256,95 @@ Admin (MANAGER/ADMIN):
 ---
 
 ## Phase 8 — Orders (Customer)
-- [ ] `GET /api/v1/orders?limit=&offset=`
-- [ ] `GET /api/v1/orders/:id` (ownership)
-- [ ] `POST /api/v1/orders/:id/cancel` (ownership)
-- [ ] Cancel rules:
-  - [ ] only if status=CREATED
-  - [ ] audit cancellation
+- [x] `GET /api/v1/orders?limit=&offset=`
+- [x] `GET /api/v1/orders/:id` (ownership)
+- [x] `POST /api/v1/orders/:id/cancel` (ownership)
+- [x] Cancel rules:
+  - [x] only if status=CREATED
+  - [x] audit cancellation
   - [ ] (optional) refund workflow if needed by provider
 
 ---
 
 ## Phase 9 — Ops (Employee/Manager/Admin)
 ### 9.1 Orders List (Ops)
-- [ ] `GET /api/v1/ops/orders?...&limit=&offset=`
-- [ ] Filters:
-  - [ ] status
-  - [ ] dateFrom/dateTo
-  - [ ] urgency sorting by delivery slot start time
+- [x] `GET /api/v1/ops/orders?...&limit=&offset=`
+- [x] Filters:
+  - [x] status
+  - [x] dateFrom/dateTo
+  - [x] urgency sorting by delivery slot start time
 
 ### 9.2 Order Details (Ops)
-- [ ] `GET /api/v1/ops/orders/:id`
+- [x] `GET /api/v1/ops/orders/:id`
 
 ### 9.3 Picking
-- [ ] `PATCH /api/v1/ops/orders/:id/items/:itemId/picked-status`
-- [ ] Audit item picked_status changes
+- [x] `PATCH /api/v1/ops/orders/:id/items/:itemId/picked-status`
+- [x] Audit item picked_status changes
 
 ### 9.4 Status Updates
-- [ ] `PATCH /api/v1/ops/orders/:id/status`
-- [ ] Enforce transitions:
-  - [ ] Employee limited transitions
-  - [ ] READY only if all items PICKED and none missing
-  - [ ] MISSING if any item missing and employee finishes
-- [ ] Audit status changes with old/new
+- [x] `PATCH /api/v1/ops/orders/:id/status`
+- [x] Enforce transitions:
+  - [x] Employee limited transitions
+  - [x] READY only if all items PICKED and none missing
+  - [x] MISSING if any item missing and employee finishes
+- [x] Audit status changes with old/new
 
 ---
 
 ## Phase 10 — Stock Requests (Employee → Manager/Admin)
 ### 10.1 Employee
-- [ ] `POST /api/v1/stock-requests` (must include branch_id)
-- [ ] `GET /api/v1/stock-requests/my?limit=&offset=`
+- [x] `POST /api/v1/stock-requests` (must include branch_id)
+- [x] `GET /api/v1/stock-requests/my?limit=&offset=`
 
 ### 10.2 Manager/Admin Review
-- [ ] `GET /api/v1/admin/stock-requests?status=PENDING&limit=&offset=`
-- [ ] `PATCH /api/v1/admin/stock-requests/:id/review`
-  - [ ] APPROVED updates inventory (SET or ADD) + audit old/new
-  - [ ] REJECTED sets status + audit
-- [ ] Bulk review:
-  - [ ] `PATCH /api/v1/admin/stock-requests/bulk-review`
-  - [ ] Partial success response per ID
-  - [ ] Audit each request separately
+- [x] `GET /api/v1/admin/stock-requests?status=PENDING&limit=&offset=`
+- [x] `PATCH /api/v1/admin/stock-requests/:id/review`
+  - [x] APPROVED updates inventory (SET or ADD) + audit old/new
+  - [x] REJECTED sets status + audit
+- [x] Bulk review:
+  - [x] `PATCH /api/v1/admin/stock-requests/bulk-review`
+  - [x] Partial success response per ID
+  - [x] Audit each request separately
 
 ---
 
 ## Phase 11 — Audit Viewer (Manager/Admin)
-- [ ] `GET /api/v1/admin/audit?...&limit=&offset=`
-- [ ] Filters:
-  - [ ] entity_type
-  - [ ] action
-  - [ ] actor
-  - [ ] date range
-- [ ] Ensure pagination and indexes support large datasets
+- [x] `GET /api/v1/admin/audit?...&limit=&offset=`
+- [x] Filters:
+  - [x] entity_type
+  - [x] action
+  - [x] actor
+  - [x] date range
+- [x] Ensure pagination and indexes support large datasets
 
 ---
 
 ## Phase 12 — Testing (Must-Have)
-- [ ] Checkout oversell prevention:
-  - [ ] concurrent requests cannot oversell last unit
-- [ ] Branch switching:
-  - [ ] preview returns INSUFFICIENT_STOCK for pickup branch change
-- [ ] Ownership:
-  - [ ] customer gets 404 when accessing another user’s order
-- [ ] Employee transitions:
-  - [ ] invalid status transition returns 409 INVALID_STATUS_TRANSITION
-- [ ] Missing items flow:
-  - [ ] marking missing then finishing sets order status to MISSING
-- [ ] Bulk review:
-  - [ ] returns partial success and does not fail entire batch
-- [ ] Audit transactional integrity:
-  - [ ] if service rolls back, no audit row exists
-- [ ] Payment danger zone simulation (at least log path)
+- [x] Checkout oversell prevention:
+  - [x] concurrent requests cannot oversell last unit
+- [x] Branch switching:
+  - [x] preview returns INSUFFICIENT_STOCK for pickup branch change
+- [x] Ownership:
+  - [x] customer gets 404 when accessing another user’s order
+- [x] Employee transitions:
+  - [x] invalid status transition returns 409 INVALID_STATUS_TRANSITION
+- [x] Missing items flow:
+  - [x] marking missing then finishing sets order status to MISSING
+- [x] Bulk review:
+  - [x] returns partial success and does not fail entire batch
+- [x] Audit transactional integrity:
+  - [x] if service rolls back, no audit row exists
+- [x] Payment danger zone simulation (at least log path)
 
 ---
 
 ## Phase 13 — Release Readiness
-- [ ] Add production run scripts (gunicorn)
-- [ ] Add DB migration run instructions
-- [ ] Add seed script instructions (warehouse + delivery slots)
-- [ ] Add health endpoint:
-  - [ ] `GET /api/v1/health` (DB connectivity optional)
-- [ ] Verify ruff + tests pass in CI (optional but recommended)
+- [x] Add production run scripts (gunicorn)
+- [x] Add DB migration run instructions
+- [x] Add seed script instructions (warehouse + delivery slots)
+- [x] Add health endpoint:
+  - [x] `GET /api/v1/health` (DB connectivity optional)
+- [x] Verify ruff + tests pass in CI (optional but recommended)
 
 ---
 

@@ -15,8 +15,8 @@ from sqlalchemy.orm import Session
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(PROJECT_ROOT))
 
-from app.config import AppConfig
-from app.models import Base, Branch, DeliverySlot, Role, User
+from app.config import AppConfig  # noqa: E402
+from app.models import Base, Branch, DeliverySlot, Role, User  # noqa: E402
 
 
 def seed_warehouse_branch(session: Session) -> Branch:

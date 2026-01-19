@@ -3,12 +3,9 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Optional
 from uuid import UUID
 
-from pydantic import Field
-
-from .common import DefaultModel, Pagination, PaginatedResponse
+from .common import DefaultModel, Pagination
 
 
 class CategoryResponse(DefaultModel):

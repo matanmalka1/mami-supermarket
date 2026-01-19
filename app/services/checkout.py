@@ -23,7 +23,6 @@ from ..models import (
     OrderDeliveryDetails,
     OrderItem,
     OrderPickupDetails,
-    PaymentToken,
 )
 from ..models.enums import FulfillmentType, OrderStatus
 from ..schemas.checkout import (
@@ -271,7 +270,7 @@ class CheckoutService:
         stmt = select(Cart).where(Cart.id == cart_id).options(joinedload(Cart.items).joinedload(CartItem.product))
         if for_update:
             stmt = stmt.with_for_update()
-        cart = db.session.execute(stmt).scalar_one_or_none()
+        cart = db.session.execute(stmt).unique().scalar_one_or_none()
         if not cart:
             raise DomainError("NOT_FOUND", "Cart not found", status_code=404)
         return cart

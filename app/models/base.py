@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-
 from sqlalchemy import TIMESTAMP, Column, Boolean, func
 from sqlalchemy.orm import declarative_base
 

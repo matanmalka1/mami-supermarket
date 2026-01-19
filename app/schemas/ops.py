@@ -7,7 +7,7 @@ from uuid import UUID
 
 from pydantic import Field
 
-from .common import DefaultModel, Pagination
+from .common import DefaultModel
 from ..models.enums import OrderStatus, PickedStatus
 
 

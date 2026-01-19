@@ -13,8 +13,11 @@ from .routes.v1 import (
     cart,
     catalog,
     checkout,
+    health,
+    stock_requests,
     ops,
     orders,
+    audit,
 )
 
 def create_app(config: AppConfig | None = None) -> Flask:
@@ -52,11 +55,14 @@ def _register_blueprints(app: Flask) -> None:
 
     app.register_blueprint(auth.blueprint, url_prefix="/api/v1/auth")
     app.register_blueprint(catalog.blueprint, url_prefix="/api/v1/catalog")
+    app.register_blueprint(health.blueprint, url_prefix="/api/v1/health")
     app.register_blueprint(branches.blueprint, url_prefix="/api/v1")
     app.register_blueprint(cart.blueprint, url_prefix="/api/v1/cart")
     app.register_blueprint(checkout.blueprint, url_prefix="/api/v1/checkout")
+    app.register_blueprint(stock_requests.blueprint, url_prefix="/api/v1/stock-requests")
     app.register_blueprint(orders.blueprint, url_prefix="/api/v1/orders")
     app.register_blueprint(ops.blueprint, url_prefix="/api/v1/ops")
+    app.register_blueprint(audit.blueprint, url_prefix="/api/v1/admin/audit")
     app.register_blueprint(admin.blueprint, url_prefix="/api/v1/admin")
 
 

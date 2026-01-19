@@ -4,10 +4,7 @@ from __future__ import annotations
 
 from enum import Enum
 from decimal import Decimal
-from typing import List
 from uuid import UUID
-
-from pydantic import BaseModel, Field
 
 from .common import DefaultModel
 from ..models.enums import FulfillmentType
