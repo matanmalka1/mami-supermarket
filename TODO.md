@@ -150,6 +150,20 @@ Each task is written as a checkbox so you can track progress in GitHub.
 - [x] `AuditQuery`
 - [x] `AuditResponse`
 
+## Phase 3 — Auth + RBAC + Ownership
+- [x] Implement password hashing utilities
+- [x] JWT setup (`Flask-JWT-Extended`)
+- [x] Middleware:
+  - [x] `require_auth`
+  - [ ] `require_role(roles[])`
+  - [x] `require_ownership(resource_loader)` w/ admin bypass (pending)
+- [x] Auth routes:
+  - [x] `POST /api/v1/auth/register` (CUSTOMER only, but route accepts role)
+  - [x] `POST /api/v1/auth/login`
+  - [x] `POST /api/v1/auth/change-password`
+- [ ] Rate limit login endpoint (not yet)
+- [ ] Audit login success/fail (optional)
+
 ---
 
 ## Phase 3 — Auth + RBAC + Ownership
