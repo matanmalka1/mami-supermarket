@@ -23,6 +23,25 @@ from ..services.audit import AuditService
 
 class BranchService:
     @staticmethod
+    def ensure_delivery_source_branch_exists(branch_id: str) -> Branch:
+        """Ensure configured DELIVERY_SOURCE_BRANCH_ID exists; raise if not."""
+        if not branch_id:
+            raise DomainError("CONFIG_ERROR", "DELIVERY_SOURCE_BRANCH_ID is not set", status_code=500)
+        try:
+            branch_uuid = UUID(str(branch_id))
+        except ValueError as exc:
+            raise DomainError("CONFIG_ERROR", "DELIVERY_SOURCE_BRANCH_ID is not a valid UUID", status_code=500) from exc
+
+        branch = db.session.get(Branch, branch_uuid)
+        if not branch:
+            raise DomainError(
+                "CONFIG_ERROR",
+                "Configured DELIVERY_SOURCE_BRANCH_ID does not exist in branches table",
+                status_code=500,
+            )
+        return branch
+
+    @staticmethod
     def list_branches(limit: int, offset: int) -> tuple[list[BranchResponse], int]:
         stmt = (
             select(Branch)

@@ -31,6 +31,7 @@ def create_app(config: AppConfig | None = None) -> Flask:
     _register_extensions(app)
     register_middlewares(app)
     _register_blueprints(app)
+    _register_delivery_branch_check(app)
 
     return app
 
@@ -57,3 +58,20 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(orders.blueprint, url_prefix="/api/v1/orders")
     app.register_blueprint(ops.blueprint, url_prefix="/api/v1/ops")
     app.register_blueprint(admin.blueprint, url_prefix="/api/v1/admin")
+
+
+def _register_delivery_branch_check(app: Flask) -> None:
+    """Validate DELIVERY_SOURCE_BRANCH_ID exists; run once lazily."""
+    from flask import g
+    from .services.branches import BranchService
+
+    @app.before_request
+    def _ensure_branch():
+        if getattr(g, "_delivery_branch_validated", False):
+            return
+        try:
+            BranchService.ensure_delivery_source_branch_exists(app.config.get("DELIVERY_SOURCE_BRANCH_ID", ""))
+        except Exception:
+            # let the global error handlers format the response
+            raise
+        g._delivery_branch_validated = True

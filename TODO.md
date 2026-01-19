@@ -195,7 +195,7 @@ Admin (MANAGER/ADMIN):
   - [x] `GET /api/v1/admin/inventory?branchId=&productId=&limit=&offset=`
   - [x] `PUT /api/v1/admin/inventory/:id` (update quantity)
 - [x] Audit inventory updates (old/new)
-- [ ] Ensure DELIVERY_SOURCE_BRANCH_ID exists in DB
+- [x] Ensure DELIVERY_SOURCE_BRANCH_ID exists in DB
 
 ---
 
