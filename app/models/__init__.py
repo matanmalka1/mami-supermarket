@@ -17,6 +17,7 @@ from .entities import (
     Product,
     StockRequest,
     User,
+    IdempotencyKey,
 )
 from .enums import (
     CartStatus,
@@ -45,6 +46,7 @@ __all__ = [
     "Product",
     "StockRequest",
     "User",
+    "IdempotencyKey",
     "CartStatus",
     "FulfillmentType",
     "OrderStatus",

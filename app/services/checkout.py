@@ -17,6 +17,7 @@ from ..models import (
     Cart,
     CartItem,
     DeliverySlot,
+    IdempotencyKey,
     Inventory,
     Order,
     OrderDeliveryDetails,
@@ -35,6 +36,8 @@ from ..schemas.checkout import (
 from ..services.audit import AuditService
 from ..services.branches import BranchService
 from ..services.payment import PaymentService
+import json
+import hashlib
 
 
 class CheckoutService:
@@ -56,6 +59,16 @@ class CheckoutService:
         branch_id = CheckoutService._resolve_branch(payload.fulfillment_type, payload.branch_id)
         cart = CheckoutService._load_cart(payload.cart_id, for_update=True, branch_id=branch_id)
         CheckoutService._validate_delivery_slot(payload.fulfillment_type, payload.delivery_slot_id, branch_id)
+
+        idempotency_record = CheckoutService._check_idempotency(
+            user_id=cart.user_id,
+            key=payload.idempotency_key,
+            request_hash=CheckoutService._hash_request(payload),
+        )
+        if idempotency_record:
+            if idempotency_record.status_code == 201:
+                return CheckoutConfirmResponse.model_validate(idempotency_record.response_payload)
+            raise DomainError("IDEMPOTENCY_CONFLICT", "Request payload differs for same Idempotency-Key", status_code=409)
 
         # Lock inventory rows
         inv_ids = [item.product_id for item in cart.items]
@@ -158,6 +171,17 @@ class CheckoutService:
                 new_value={"order_number": order.order_number, "total_amount": float(total_amount)},
             )
             db.session.commit()
+            CheckoutService._store_idempotency(
+                user_id=cart.user_id,
+                key=payload.idempotency_key,
+                request_hash=CheckoutService._hash_request(payload),
+                response=CheckoutConfirmResponse(
+                    order_id=order.id,
+                    order_number=order.order_number,
+                    total_paid=total_amount,
+                    payment_reference=payment_ref,
+                ),
+            )
         except Exception:
             db.session.rollback()
             if payment_ref:
@@ -207,6 +231,40 @@ class CheckoutService:
         end = slot.end_time
         if not (time(6, 0) <= start < end <= time(22, 0)) or (end.hour - start.hour) != 2:
             raise DomainError("INVALID_SLOT", "Delivery slot must be a 2-hour window between 06:00-22:00", status_code=400)
+
+    @staticmethod
+    def _hash_request(payload: CheckoutConfirmRequest) -> str:
+        data = payload.model_dump()
+        data.pop("idempotency_key", None)
+        digest = hashlib.sha256(json.dumps(data, sort_keys=True, default=str).encode("utf-8")).hexdigest()
+        return digest
+
+    @staticmethod
+    def _check_idempotency(user_id: UUID, key: str, request_hash: str) -> IdempotencyKey | None:
+        existing = db.session.execute(
+            select(IdempotencyKey).where(
+                IdempotencyKey.user_id == user_id,
+                IdempotencyKey.key == key,
+            )
+        ).scalar_one_or_none()
+        if not existing:
+            return None
+        if existing.request_hash != request_hash:
+            raise DomainError("IDEMPOTENCY_CONFLICT", "Request payload differs for same Idempotency-Key", status_code=409)
+        return existing
+
+    @staticmethod
+    def _store_idempotency(user_id: UUID, key: str, request_hash: str, response: CheckoutConfirmResponse) -> None:
+        record = IdempotencyKey(
+            id=uuid4(),
+            user_id=user_id,
+            key=key,
+            request_hash=request_hash,
+            response_payload=response.model_dump(),
+            status_code=201,
+        )
+        db.session.add(record)
+        db.session.commit()
 
     @staticmethod
     def _load_cart(cart_id: UUID, for_update: bool = False, branch_id: UUID | None = None) -> Cart:

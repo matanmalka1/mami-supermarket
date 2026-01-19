@@ -249,9 +249,9 @@ Admin (MANAGER/ADMIN):
   - [x] audit token save event (no raw token logging)
 
 ### 7.4 Idempotency (Recommended)
-- [ ] Add `Idempotency-Key` header support for checkout confirm
-- [ ] Create `idempotency_keys` table
-- [ ] Return saved response for same key+hash, else conflict error
+- [x] Add `Idempotency-Key` header support for checkout confirm
+- [x] Create `idempotency_keys` table
+- [x] Return saved response for same key+hash, else conflict error
 
 ---
 

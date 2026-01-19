@@ -253,6 +253,23 @@ class StockRequest(Base, TimestampMixin):
     actor = relationship("User")
 
 
+class IdempotencyKey(Base, TimestampMixin):
+    __tablename__ = "idempotency_keys"
+    __table_args__ = (
+        UniqueConstraint("user_id", "key", "request_hash", name="uq_idempotency_key_hash"),
+        Index("ix_idempotency_key", "key"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    key = Column(String(128), nullable=False)
+    request_hash = Column(String(256), nullable=False)
+    response_payload = Column(JSON, nullable=True)
+    status_code = Column(Integer, nullable=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+
 class Audit(Base):
     __tablename__ = "audit"
     __table_args__ = (
