@@ -3,7 +3,7 @@
 from flask import Flask
 
 from .config import AppConfig
-from .extensions import db, jwt
+from .extensions import db, jwt, limiter
 from .middleware import register_middlewares
 from .utils.logging_config import setup_structured_logging
 
@@ -34,6 +34,7 @@ def _register_extensions(app: Flask) -> None:
 
     db.init_app(app)
     jwt.init_app(app)
+    limiter.init_app(app)
 
 
 def _register_blueprints(app: Flask) -> None:

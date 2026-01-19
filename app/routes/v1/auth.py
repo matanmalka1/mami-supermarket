@@ -4,6 +4,8 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from ..middleware.error_handler import DomainError
+from ..extensions import limiter
+from ..services.audit import AuditService
 from ..utils.responses import success_envelope
 from ..schemas.auth import (
     AuthResponse,
@@ -35,9 +37,27 @@ def register():
 
 
 @blueprint.post("/login")
+@limiter.limit("5 per minute")
 def login():
     payload = LoginRequest.model_validate(_parse_payload(request.get_json()))
-    user = AuthService.authenticate(payload.email, payload.password)
+    try:
+        user = AuthService.authenticate(payload.email, payload.password)
+    except DomainError as exc:
+        AuditService.log_event(
+            entity_type="user_login",
+            action="LOGIN_FAILURE",
+            context={
+                "email": payload.email,
+                "reason": exc.code,
+            },
+        )
+        raise
+    AuditService.log_event(
+        entity_type="user_login",
+        action="LOGIN_SUCCESS",
+        actor_user_id=user.id,
+        entity_id=user.id,
+    )
     response = AuthService.build_auth_response(user)
     return _build_response(response)
 
