@@ -169,18 +169,18 @@ Each task is written as a checkbox so you can track progress in GitHub.
 
 ## Phase 4 — Catalog (Public Read + Admin Manage)
 ### 4.1 Public endpoints
-- [ ] `GET /api/v1/categories`
-- [ ] `GET /api/v1/categories/:id/products?branchId=...`
-- [ ] `GET /api/v1/products/:id?branchId=...`
-- [ ] `GET /api/v1/products/search?q=...&categoryId=...&inStock=true&branchId=...&limit=&offset=`
-- [ ] `GET /api/v1/products/autocomplete?q=...&limit=10`
+- [x] `GET /api/v1/categories`
+- [x] `GET /api/v1/categories/:id/products?branchId=...`
+- [x] `GET /api/v1/products/:id?branchId=...`
+- [x] `GET /api/v1/products/search?q=...&categoryId=...&inStock=true&branchId=...&limit=&offset=`
+- [x] `GET /api/v1/products/autocomplete?q=...&limit=10`
 
 ### 4.2 Admin endpoints (MANAGER/ADMIN)
-- [ ] Categories:
-  - [ ] create/update/deactivate (soft delete)
-- [ ] Products:
-  - [ ] create/update/deactivate (soft delete)
-- [ ] Audit for each create/update/deactivate
+- [x] Categories:
+  - [x] create/update/deactivate (soft delete)
+- [x] Products:
+  - [x] create/update/deactivate (soft delete)
+- [x] Audit for each create/update/deactivate
 
 ---
 
