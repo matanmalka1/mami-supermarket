@@ -105,50 +105,50 @@ Each task is written as a checkbox so you can track progress in GitHub.
 
 ## Phase 2 — Schemas (Pydantic DTO Layer)
 ### 2.1 Common
-- [ ] `ErrorResponse`
-- [ ] `Pagination`
-- [ ] `PaginatedResponse[T]`
+- [x] `ErrorResponse`
+- [x] `Pagination`
+- [x] `PaginatedResponse[T]`
 
 ### 2.2 Auth
-- [ ] `RegisterRequest`, `LoginRequest`, `ChangePasswordRequest`
-- [ ] `UserResponse`, `AuthResponse`
+- [x] `RegisterRequest`, `LoginRequest`, `ChangePasswordRequest`
+- [x] `UserResponse`, `AuthResponse`
 
 ### 2.3 Catalog
-- [ ] `CategoryResponse`
-- [ ] `ProductResponse` (includes `in_stock_anywhere`, optional `in_stock_for_branch`)
-- [ ] `ProductSearchResponse` (paginated)
-- [ ] `AutocompleteResponse`
+- [x] `CategoryResponse`
+- [x] `ProductResponse` (includes `in_stock_anywhere`, optional `in_stock_for_branch`)
+- [x] `ProductSearchResponse` (paginated)
+- [x] `AutocompleteResponse`
 
 ### 2.4 Cart
-- [ ] `CartItemUpsertRequest`
-- [ ] `CartItemResponse`
-- [ ] `CartResponse`
+- [x] `CartItemUpsertRequest`
+- [x] `CartItemResponse`
+- [x] `CartResponse`
 
 ### 2.5 Checkout
-- [ ] `CheckoutPreviewRequest/Response`
-- [ ] `CheckoutConfirmRequest/Response`
+- [x] `CheckoutPreviewRequest/Response`
+- [x] `CheckoutConfirmRequest/Response`
 
 ### 2.6 Orders
-- [ ] `OrderItemResponse`
-- [ ] `OrderResponse`
-- [ ] `OrderListResponse` (paginated)
-- [ ] `CancelOrderResponse`
+- [x] `OrderItemResponse`
+- [x] `OrderResponse`
+- [x] `OrderListResponse` (paginated)
+- [x] `CancelOrderResponse`
 
 ### 2.7 Ops
-- [ ] `OpsOrdersQuery`
-- [ ] `OpsOrderResponse`
-- [ ] `UpdatePickStatusRequest`
-- [ ] `UpdateOrderStatusRequest`
+- [x] `OpsOrdersQuery`
+- [x] `OpsOrderResponse`
+- [x] `UpdatePickStatusRequest`
+- [x] `UpdateOrderStatusRequest`
 
 ### 2.8 Stock Requests
-- [ ] `StockRequestCreateRequest`
-- [ ] `StockRequestReviewRequest`
-- [ ] `BulkReviewRequest`
-- [ ] `StockRequestResponse`
+- [x] `StockRequestCreateRequest`
+- [x] `StockRequestReviewRequest`
+- [x] `BulkReviewRequest`
+- [x] `StockRequestResponse`
 
 ### 2.9 Audit
-- [ ] `AuditQuery`
-- [ ] `AuditResponse`
+- [x] `AuditQuery`
+- [x] `AuditResponse`
 
 ---
 
