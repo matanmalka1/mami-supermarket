@@ -72,7 +72,7 @@ Backend API for **Mami Supermarket** – modern online supermarket system suppor
 ```text
 mami-backend/
 ├── alembic/
-├── src/
+├── app/
 │   ├── __init__.py
 │   ├── config.py
 │   ├── extensions.py           # db, jwt, etc.
@@ -174,9 +174,11 @@ flask db upgrade
 python manage.py create-admin
 
 # 8. Run development server
-flask run --debug
+python run.py
 # or
-gunicorn -w 4 -b 0.0.0.0:5000 "src:create_app()"
+flask run --debug
+# or for production
+gunicorn -w 4 -b 0.0.0.0:5000 "wsgi:application"
 ```
 
 ## Environment Variables (.env)

@@ -1,6 +1,12 @@
-flask
-sqlalchemy
-flask-jwt-extended
+Flask
+SQLAlchemy
+alembic
 psycopg[binary]
+Flask-JWT-Extended
+passlib[bcrypt]
 pydantic
 httpx
+Flask-Cors
+Flask-Limiter
+pytest
+pytest-cov
