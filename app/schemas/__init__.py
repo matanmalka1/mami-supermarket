@@ -6,9 +6,12 @@ from .cart import CartItemResponse, CartItemUpsertRequest, CartResponse
 from .catalog import (
     AutocompleteItem,
     AutocompleteResponse,
+    CategoryAdminRequest,
     CategoryResponse,
+    ProductAdminRequest,
     ProductResponse,
     ProductSearchResponse,
+    ProductUpdateRequest,
 )
 from .checkout import (
     CheckoutConfirmRequest,
@@ -40,8 +43,11 @@ __all__ = [
     "CategoryResponse",
     "ProductResponse",
     "ProductSearchResponse",
+    "ProductUpdateRequest",
     "AutocompleteItem",
     "AutocompleteResponse",
+    "CategoryAdminRequest",
+    "ProductAdminRequest",
     "CartItemUpsertRequest",
     "CartItemResponse",
     "CartResponse",

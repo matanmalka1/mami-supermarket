@@ -151,36 +151,19 @@ Each task is written as a checkbox so you can track progress in GitHub.
 - [x] `AuditResponse`
 
 ## Phase 3 — Auth + RBAC + Ownership
-- [x] Implement password hashing utilities
+- [x] Implement password hashing utilities (passlib)
 - [x] JWT setup (`Flask-JWT-Extended`)
+  - [x] token includes user_id + role
 - [x] Middleware:
   - [x] `require_auth`
-  - [ ] `require_role(roles[])`
-  - [x] `require_ownership(resource_loader)` w/ admin bypass (pending)
+  - [x] `require_role(roles[])`
+  - [x] `require_ownership(resource_loader)` w/ admin bypass + ownership 404
 - [x] Auth routes:
-  - [x] `POST /api/v1/auth/register` (CUSTOMER only, but route accepts role)
+  - [x] `POST /api/v1/auth/register`
   - [x] `POST /api/v1/auth/login`
   - [x] `POST /api/v1/auth/change-password`
-- [ ] Rate limit login endpoint (not yet)
-- [ ] Audit login success/fail (optional)
-
----
-
-## Phase 3 — Auth + RBAC + Ownership
-- [ ] Implement password hashing utilities (passlib)
-- [ ] JWT setup (Flask-JWT-Extended):
-  - [ ] token includes user_id + role
-- [ ] Middleware:
-  - [ ] `require_auth`
-  - [ ] `require_role(roles[])`
-  - [ ] `require_ownership(resource_loader)` with MANAGER/ADMIN bypass
-  - [ ] Ownership mismatch returns 404
-- [ ] Auth routes:
-  - [ ] `POST /api/v1/auth/register` (CUSTOMER only)
-  - [ ] `POST /api/v1/auth/login` (all roles)
-  - [ ] `POST /api/v1/auth/change-password`
-- [ ] Rate limit login endpoint (Flask-Limiter)
-- [ ] Audit login success/fail (optional but recommended)
+- [x] Rate limit login endpoint
+- [x] Audit login success/fail (optional)
 
 ---
 

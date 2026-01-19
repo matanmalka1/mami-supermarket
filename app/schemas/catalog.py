@@ -42,3 +42,24 @@ class AutocompleteItem(DefaultModel):
 
 class AutocompleteResponse(Pagination):
     items: list[AutocompleteItem]
+
+
+class CategoryAdminRequest(DefaultModel):
+    name: str
+    description: str | None = None
+
+
+class ProductAdminRequest(DefaultModel):
+    name: str
+    sku: str
+    price: Decimal
+    category_id: UUID
+    description: str | None = None
+
+
+class ProductUpdateRequest(DefaultModel):
+    name: str | None = None
+    sku: str | None = None
+    price: Decimal | None = None
+    category_id: UUID | None = None
+    description: str | None = None
