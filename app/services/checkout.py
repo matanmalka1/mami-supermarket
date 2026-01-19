@@ -92,7 +92,7 @@ class CheckoutService:
         # Charge payment (stub)
         cart_total = sum(item.unit_price * item.quantity for item in cart.items)
         delivery_fee = CheckoutService._delivery_fee(cart)["delivery_fee"]
-        total_amount = Decimal(cart_total + (delivery_fee or 0))
+        total_amount = Decimal(cart_total) + Decimal(str(delivery_fee or 0))
         payment_ref = None
         try:
             payment_ref = PaymentService.charge(payload.payment_token_id, float(total_amount))
@@ -187,6 +187,7 @@ class CheckoutService:
                 AuditService.log_event(
                     entity_type="payment",
                     action="PAYMENT_CAPTURED_NOT_COMMITTED",
+                    entity_id=cart.id,
                     context={"reference": payment_ref, "cart_id": str(cart.id)},
                 )
             raise

@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from uuid import UUID
-
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required
 
 from app.middleware.error_handler import DomainError
 from app.schemas.checkout import CheckoutConfirmRequest, CheckoutPreviewRequest
@@ -13,13 +11,6 @@ from app.services.checkout import CheckoutService
 from app.utils.responses import success_envelope
 
 blueprint = Blueprint("checkout", __name__)
-
-
-def _current_user_id() -> UUID:
-    ident = get_jwt_identity()
-    if not ident:
-        raise DomainError("AUTH_REQUIRED", "Authentication required", status_code=401)
-    return UUID(ident)
 
 
 def _parse(body_model, data: dict | None):

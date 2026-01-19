@@ -41,32 +41,46 @@ def test_app():
 @pytest.fixture
 def session(test_app):
     with test_app.app_context():
+        # Fresh DB per test
+        Base.metadata.drop_all(bind=db.engine)
+        Base.metadata.create_all(bind=db.engine)
+        warehouse_id = uuid.UUID(test_app.config["DELIVERY_SOURCE_BRANCH_ID"])
+        branch = Branch(id=warehouse_id, name="Warehouse", address="Nowhere 1")
+        db.session.add(branch)
+        slot = DeliverySlot(
+            branch_id=warehouse_id,
+            day_of_week=0,
+            start_time=time(6, 0),
+            end_time=time(8, 0),
+        )
+        db.session.add(slot)
+        db.session.commit()
         yield db.session
         db.session.rollback()
 
 
 @pytest.fixture
 def users(session):
-    u1 = User(
-        email="u1@example.com",
-        full_name="User One",
-        password_hash="hash",
-        role=Role.CUSTOMER,
-    )
-    u2 = User(
-        email="u2@example.com",
-        full_name="User Two",
-        password_hash="hash",
-        role=Role.CUSTOMER,
-    )
-    session.add_all([u1, u2])
+    session.query(User).delete()
     session.commit()
-    return u1, u2
+    created = []
+    for i in range(2):
+        user = User(
+            email=f"u{i}@example.com",
+            full_name=f"User {i}",
+            password_hash="hash",
+            role=Role.CUSTOMER,
+        )
+        session.add(user)
+        created.append(user)
+    session.commit()
+    return created
 
 
 @pytest.fixture
 def product_with_inventory(session, test_app):
     warehouse_id = uuid.UUID(test_app.config["DELIVERY_SOURCE_BRANCH_ID"])
+    session.query(Branch).filter(Branch.name == "Pickup").delete()
     other_branch = Branch(name="Pickup", address="Street 2")
     session.add(other_branch)
     category = Category(name="Dairy")

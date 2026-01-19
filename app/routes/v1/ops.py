@@ -4,24 +4,17 @@ from __future__ import annotations
 
 from datetime import datetime
 from uuid import UUID
-
 from flask import Blueprint, jsonify, request, g
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_jwt_extended import jwt_required
 
 from app.middleware.auth import require_role
 from app.middleware.error_handler import DomainError
 from app.models.enums import OrderStatus, Role
 from app.services.ops import OpsOrderService
+from app.utils.request_utils import current_user_id, parse_pagination, parse_iso_date
 from app.utils.responses import pagination_envelope, success_envelope
 
 blueprint = Blueprint("ops", __name__)
-
-
-def _current_user_id() -> UUID:
-    user_id = get_jwt_identity()
-    if not user_id:
-        raise DomainError("AUTH_REQUIRED", "Authentication required", status_code=401)
-    return UUID(user_id)
 
 
 def _parse_filters() -> tuple[OrderStatus | None, datetime | None, datetime | None, int, int]:
@@ -32,19 +25,8 @@ def _parse_filters() -> tuple[OrderStatus | None, datetime | None, datetime | No
         raise DomainError("BAD_REQUEST", "Invalid status filter", status_code=400)
     date_from = request.args.get("dateFrom")
     date_to = request.args.get("dateTo")
-    try:
-        limit = int(request.args.get("limit", 50))
-        offset = int(request.args.get("offset", 0))
-    except (TypeError, ValueError):
-        raise DomainError("BAD_REQUEST", "Invalid pagination parameters", status_code=400)
-    def _parse_dt(val: str | None):
-        if not val:
-            return None
-        try:
-            return datetime.fromisoformat(val)
-        except ValueError:
-            raise DomainError("BAD_REQUEST", "Invalid date format; use ISO 8601", status_code=400)
-    return status, _parse_dt(date_from), _parse_dt(date_to), limit, offset
+    limit, offset = parse_pagination()
+    return status, parse_iso_date(date_from), parse_iso_date(date_to), limit, offset
 
 
 @blueprint.get("/orders")
@@ -72,7 +54,7 @@ def update_picked_status(order_id: UUID, item_id: UUID):
     new_status = payload.get("picked_status")
     if not new_status:
         raise DomainError("BAD_REQUEST", "picked_status is required", status_code=400)
-    order = OpsOrderService.update_item_status(order_id, item_id, new_status, _current_user_id())
+    order = OpsOrderService.update_item_status(order_id, item_id, new_status, current_user_id())
     return jsonify(success_envelope(order))
 
 
@@ -86,5 +68,5 @@ def update_order_status(order_id: UUID):
         raise DomainError("BAD_REQUEST", "status is required", status_code=400)
     user = getattr(g, "current_user", None)
     actor_role = user.role if user else Role.EMPLOYEE
-    order = OpsOrderService.update_order_status(order_id, new_status, _current_user_id(), actor_role)
+    order = OpsOrderService.update_order_status(order_id, new_status, current_user_id(), actor_role)
     return jsonify(success_envelope(order))
