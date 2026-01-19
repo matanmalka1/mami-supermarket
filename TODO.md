@@ -200,16 +200,16 @@ Admin (MANAGER/ADMIN):
 ---
 
 ## Phase 6 — Cart (Customer Only)
-- [ ] `GET /api/v1/cart`
-- [ ] `POST /api/v1/cart/items`
-- [ ] `PUT /api/v1/cart/items/:id`
-- [ ] `DELETE /api/v1/cart/items/:id`
-- [ ] `DELETE /api/v1/cart` (clear)
-- [ ] Validations:
-  - [ ] product is_active
-  - [ ] quantity >= 1
-  - [ ] block if `OUT_OF_STOCK_ANYWHERE` (no stock in any branch)
-- [ ] Audit cart actions (optional but recommended)
+- [x] `GET /api/v1/cart`
+- [x] `POST /api/v1/cart/items`
+- [x] `PUT /api/v1/cart/items/:id`
+- [x] `DELETE /api/v1/cart/items/:id`
+- [x] `DELETE /api/v1/cart` (clear)
+- [x] Validations:
+  - [x] product is_active
+  - [x] quantity >= 1
+  - [x] block if `OUT_OF_STOCK_ANYWHERE` (no stock in any branch)
+- [x] Audit cart actions
 
 ---
 
