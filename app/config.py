@@ -20,6 +20,9 @@ class AppConfig:
     DELIVERY_SOURCE_BRANCH_ID: str = field(
         default_factory=lambda: _env_or_default("DELIVERY_SOURCE_BRANCH_ID", "")
     )
+    CORS_ALLOWED_ORIGINS: str = field(
+        default_factory=lambda: _env_or_default("CORS_ALLOWED_ORIGINS", "*")
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
     SQLALCHEMY_DATABASE_URI: str = field(init=False)
 
