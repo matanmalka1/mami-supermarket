@@ -1,19 +1,15 @@
 """Stock request workflows for employees and managers/admins."""
 
 from __future__ import annotations
-
 from uuid import UUID, uuid4
-
 import sqlalchemy as sa
 from sqlalchemy.orm import selectinload
-
 from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import Inventory, StockRequest
 from app.models.enums import StockRequestStatus, StockRequestType
 from app.schemas.stock_requests import BulkReviewRequest, StockRequestCreateRequest, StockRequestResponse
-from app.services.audit import AuditService
-
+from app.services.audit_service import AuditService
 
 class StockRequestService:
     @staticmethod

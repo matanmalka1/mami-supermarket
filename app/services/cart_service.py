@@ -12,7 +12,7 @@ from ..extensions import db
 from ..middleware.error_handler import DomainError
 from ..models import Cart, CartItem, Inventory, Product
 from ..schemas.cart import CartItemResponse, CartResponse
-from ..services.audit import AuditService
+from ..services.audit_service import AuditService
 
 
 class CartService:

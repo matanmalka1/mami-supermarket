@@ -10,7 +10,7 @@ from flask_jwt_extended import jwt_required
 from app.middleware.auth import require_role
 from app.middleware.error_handler import DomainError
 from app.models.enums import OrderStatus, Role
-from app.services.ops import OpsOrderService
+from app.services.ops_service import OpsOrderService
 from app.utils.request_utils import current_user_id, parse_pagination, parse_iso_date
 from app.utils.responses import pagination_envelope, success_envelope
 

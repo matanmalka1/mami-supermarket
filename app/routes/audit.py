@@ -10,7 +10,7 @@ from flask_jwt_extended import jwt_required
 from app.middleware.auth import require_role
 from app.middleware.error_handler import DomainError
 from app.models.enums import Role
-from app.services.audit import AuditQueryService
+from app.services.audit_service import AuditQueryService
 from app.utils.responses import pagination_envelope, success_envelope
 
 blueprint = Blueprint("audit", __name__)

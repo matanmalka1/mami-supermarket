@@ -1,19 +1,13 @@
-"""Catalog read models for categories and products."""
-
 from __future__ import annotations
-
 from decimal import Decimal
 from uuid import UUID
-
 from .common import DefaultModel, Pagination
-
 
 class CategoryResponse(DefaultModel):
     id: UUID
     name: str
     description: str | None
     is_active: bool = True
-
 
 class ProductResponse(DefaultModel):
     id: UUID
@@ -26,25 +20,20 @@ class ProductResponse(DefaultModel):
     in_stock_anywhere: bool
     in_stock_for_branch: bool | None = None
 
-
 class ProductSearchResponse(DefaultModel):
     items: list[ProductResponse]
     pagination: Pagination
-
 
 class AutocompleteItem(DefaultModel):
     id: UUID
     name: str
 
-
 class AutocompleteResponse(Pagination):
     items: list[AutocompleteItem]
-
 
 class CategoryAdminRequest(DefaultModel):
     name: str
     description: str | None = None
-
 
 class ProductAdminRequest(DefaultModel):
     name: str
@@ -52,7 +41,6 @@ class ProductAdminRequest(DefaultModel):
     price: Decimal
     category_id: UUID
     description: str | None = None
-
 
 class ProductUpdateRequest(DefaultModel):
     name: str | None = None

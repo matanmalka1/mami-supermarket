@@ -5,7 +5,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from app.middleware.error_handler import DomainError
 from app.extensions import limiter
-from app.services.audit import AuditService
+from app.services.audit_service import AuditService
 from app.utils.responses import success_envelope
 from app.schemas.auth import (
     AuthResponse,
@@ -13,7 +13,7 @@ from app.schemas.auth import (
     LoginRequest,
     RegisterRequest,
 )
-from app.services.auth import AuthService
+from app.services.auth_service import AuthService
 
 blueprint = Blueprint("auth", __name__)
 

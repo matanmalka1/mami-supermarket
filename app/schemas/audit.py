@@ -1,12 +1,7 @@
-"""Audit query/response DTOs."""
-
 from __future__ import annotations
-
 from datetime import datetime
 from uuid import UUID
-
 from .common import DefaultModel
-
 
 class AuditQuery(DefaultModel):
     entity_type: str | None = None
@@ -16,7 +11,6 @@ class AuditQuery(DefaultModel):
     date_to: datetime | None = None
     limit: int = 50
     offset: int = 0
-
 
 class AuditResponse(DefaultModel):
     id: UUID

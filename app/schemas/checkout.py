@@ -1,19 +1,13 @@
-"""Checkout preview and confirmation DTOs."""
-
 from __future__ import annotations
-
 from enum import Enum
 from decimal import Decimal
 from uuid import UUID
-
 from .common import DefaultModel
 from ..models.enums import FulfillmentType
-
 
 class FulfillmentChoice(str, Enum):
     DELIVERY = "DELIVERY"
     PICKUP = "PICKUP"
-
 
 class CheckoutPreviewRequest(DefaultModel):
     cart_id: UUID
@@ -22,19 +16,16 @@ class CheckoutPreviewRequest(DefaultModel):
     delivery_slot_id: UUID | None = None
     address: str | None = None
 
-
 class MissingItem(DefaultModel):
     product_id: UUID
     requested_quantity: int
     available_quantity: int
-
 
 class CheckoutPreviewResponse(DefaultModel):
     cart_total: Decimal
     delivery_fee: Decimal | None
     missing_items: list[MissingItem]
     fulfillment_type: FulfillmentType
-
 
 class CheckoutConfirmRequest(DefaultModel):
     cart_id: UUID
@@ -45,7 +36,6 @@ class CheckoutConfirmRequest(DefaultModel):
     delivery_slot_id: UUID | None = None
     address: str | None = None
     save_as_default: bool = False
-
 
 class CheckoutConfirmResponse(DefaultModel):
     order_id: UUID

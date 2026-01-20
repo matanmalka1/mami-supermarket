@@ -1,23 +1,16 @@
-"""Authentication service for registering/logging users and managing passwords."""
-
 from __future__ import annotations
-
 from datetime import datetime, timedelta
 from typing import Any
-
 from flask import current_app
 from flask_jwt_extended import create_access_token, create_refresh_token
 from sqlalchemy.exc import IntegrityError
-
 from ..extensions import db
 from ..middleware.error_handler import DomainError
 from ..models import User
 from ..schemas.auth import AuthResponse, RegisterRequest, UserResponse
 from ..utils.security import hash_password, verify_password
 
-
 TokenMetadata = dict[str, Any]
-
 
 class AuthService:
     @staticmethod

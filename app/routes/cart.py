@@ -8,7 +8,7 @@ from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required
 
 from app.schemas.cart import CartItemUpsertRequest
-from app.services.cart import CartService
+from app.services.cart_service import CartService
 from app.utils.request_utils import current_user_id, parse_json_or_400
 from app.utils.responses import success_envelope
 
@@ -48,7 +48,6 @@ def delete_item(item_id: UUID):
     user_id = current_user_id()
     cart = CartService.delete_item(user_id, CartService.get_or_create_cart(user_id).id, item_id)
     return jsonify(success_envelope(cart))
-
 
 @blueprint.delete("")
 @jwt_required()

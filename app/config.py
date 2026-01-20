@@ -1,14 +1,11 @@
 """Configuration helpers for the Flask app."""
 
 from __future__ import annotations
-
 import os
 from dataclasses import dataclass, field
 
-
 def _env_or_default(key: str, default: str) -> str:
     return os.environ.get(key, default)
-
 
 @dataclass
 class AppConfig:

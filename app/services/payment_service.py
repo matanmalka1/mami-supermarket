@@ -1,9 +1,7 @@
 """Payment provider stub for tokenized charges."""
 
 from __future__ import annotations
-
 from uuid import UUID, uuid4
-
 
 class PaymentService:
     @staticmethod

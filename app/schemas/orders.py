@@ -1,16 +1,10 @@
-"""Customer order DTOs."""
-
 from __future__ import annotations
-
 from decimal import Decimal
 from datetime import datetime
 from uuid import UUID
-
 from pydantic import Field
-
 from .common import DefaultModel, Pagination
 from ..models.enums import OrderStatus, FulfillmentType, PickedStatus
-
 
 class OrderItemResponse(DefaultModel):
     product_id: UUID
@@ -19,7 +13,6 @@ class OrderItemResponse(DefaultModel):
     unit_price: Decimal
     quantity: int
     picked_status: PickedStatus
-
 
 class OrderResponse(DefaultModel):
     id: UUID
@@ -30,11 +23,9 @@ class OrderResponse(DefaultModel):
     created_at: datetime
     items: list[OrderItemResponse]
 
-
 class OrderListResponse(DefaultModel):
     orders: list[OrderResponse]
     pagination: Pagination
-
 
 class CancelOrderResponse(DefaultModel):
     order_id: UUID

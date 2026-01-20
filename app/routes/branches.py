@@ -6,7 +6,7 @@ from uuid import UUID
 
 from flask import Blueprint, jsonify, request
 
-from app.services.branches import BranchService
+from app.services.branch_service import BranchService
 from app.utils.responses import success_envelope
 
 blueprint = Blueprint("branches", __name__)

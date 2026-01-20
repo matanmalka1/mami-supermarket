@@ -4,17 +4,14 @@ from __future__ import annotations
 
 from datetime import datetime
 from uuid import UUID
-
 import sqlalchemy as sa
 from sqlalchemy.orm import selectinload
-
 from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import Order
 from app.models.enums import OrderStatus
 from app.schemas.orders import CancelOrderResponse, OrderItemResponse, OrderResponse
-from app.services.audit import AuditService
-
+from app.services.audit_service import AuditService
 
 class OrderService:
     @staticmethod

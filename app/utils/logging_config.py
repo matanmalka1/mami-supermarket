@@ -1,11 +1,8 @@
 """Logging utilities that emit request-aware outputs."""
 
 from __future__ import annotations
-
 import logging
-
 from flask import g, has_request_context
-
 
 class RequestIDFilter(logging.Filter):
     """Inject the current request id into log records."""
@@ -16,7 +13,6 @@ class RequestIDFilter(logging.Filter):
             request_id = getattr(g, "request_id", request_id)
         record.request_id = request_id
         return True
-
 
 def setup_structured_logging(app) -> None:
     """Ensure logs always include a request id and consistent formatter."""

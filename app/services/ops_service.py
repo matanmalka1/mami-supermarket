@@ -1,21 +1,17 @@
 """Ops order workflows for employees/managers/admins."""
 
 from __future__ import annotations
-
 from datetime import datetime
 from uuid import UUID
-
 import sqlalchemy as sa
 from sqlalchemy.orm import selectinload
-
 from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import Order, OrderDeliveryDetails
 from app.models.enums import OrderStatus, PickedStatus, Role
 from app.schemas.ops import OpsOrderResponse
 from app.schemas.orders import OrderItemResponse, OrderResponse
-from app.services.audit import AuditService
-
+from app.services.audit_service import AuditService
 
 class OpsOrderService:
     @staticmethod
