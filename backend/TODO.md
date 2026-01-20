@@ -426,13 +426,10 @@ Admin (MANAGER/ADMIN):
 - [ ] Secrets management: ensure .env keys mirrored to a secrets store (no plaintext in CI logs)
 - [ ] Log scrubbing: remove PII (addresses, card refs) from structured logs and audit context
 - [ ] Rate limit hardening: per-IP and per-user buckets for auth/checkout
-- [ ] Backup/restore drill for DB and migrations (document RPO/RTO expectations)
-
 ---
 
 ## Phase 18 — Supportability & Runbooks
 
-- [ ] Incident runbook: inventory lock conflicts, payment failure spike, DB down
 - [ ] On-call dashboards: error rate, latency, DB pool saturation, payment provider latency
 - [ ] Support tooling: admin search for orders by order_number/user email; audit filters by actor
 - [ ] Release checklist: migrations applied, seed scripts validated, feature flags toggled
