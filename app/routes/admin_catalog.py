@@ -5,8 +5,8 @@ from app.middleware.auth import require_role
 from app.models.enums import Role
 from app.schemas.catalog import CategoryAdminRequest, ProductAdminRequest, ProductUpdateRequest
 from app.services.catalog_service import CatalogAdminService
+from app.utils.request_params import toggle_flag
 from app.utils.responses import success_envelope
-from .admin_utils import toggle_flag
 
 blueprint = Blueprint("admin_catalog", __name__)
 

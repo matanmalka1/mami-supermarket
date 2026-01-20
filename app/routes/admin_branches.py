@@ -6,8 +6,8 @@ from app.models.enums import Role
 from app.schemas.branches import BranchAdminRequest, DeliverySlotAdminRequest, InventoryUpdateRequest
 from app.services.branch_service import BranchService
 from app.services.inventory_service import InventoryService
+from app.utils.request_params import optional_uuid, safe_int, toggle_flag
 from app.utils.responses import success_envelope
-from .admin_utils import optional_uuid, safe_int, toggle_flag
 
 blueprint = Blueprint("admin_branches", __name__)
 
