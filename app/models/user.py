@@ -15,6 +15,7 @@ class User(Base, TimestampMixin, SoftDeleteMixin):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(320), unique=True, nullable=False, index=True)
     full_name = Column(String(128), nullable=False)
+    phone = Column(String(32), nullable=True)
     password_hash = Column(String(256), nullable=False)
     role = Column(
         SQLEnum(Role, name="role_enum"),

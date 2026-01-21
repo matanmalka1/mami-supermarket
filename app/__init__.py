@@ -14,6 +14,7 @@ from .routes import (
     catalog_routes,
     checkout_routes,
     health_routes,
+    profile_routes,
     stock_requests_routes,
     ops_routes,
     orders_routes,
@@ -50,6 +51,7 @@ def _register_extensions(app: Flask) -> None:
 
 def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(auth_routes.blueprint, url_prefix="/api/v1/auth")
+    app.register_blueprint(profile_routes.blueprint, url_prefix="/api/v1/me")
     app.register_blueprint(catalog_routes.blueprint, url_prefix="/api/v1/catalog")
     app.register_blueprint(health_routes.blueprint, url_prefix="/api/v1/health")
     app.register_blueprint(branches_routes.blueprint, url_prefix="/api/v1")

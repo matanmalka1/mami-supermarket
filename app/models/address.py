@@ -1,6 +1,6 @@
 from __future__ import annotations
 import uuid
-from sqlalchemy import Column, ForeignKey, String
+from sqlalchemy import Boolean, Column, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
@@ -14,5 +14,6 @@ class Address(Base, TimestampMixin):
     city = Column(String(64), nullable=False)
     country = Column(String(64), nullable=False)
     postal_code = Column(String(16), nullable=False)
+    is_default = Column(Boolean, nullable=False, server_default="false")
 
     user = relationship("User", back_populates="addresses")
