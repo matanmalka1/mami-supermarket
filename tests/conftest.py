@@ -31,7 +31,7 @@ def test_app():
     with app.app_context():
         Base.metadata.create_all(bind=db.engine)
         # Seed warehouse branch + slot
-        branch = Branch(id=warehouse_id, name="Warehouse", address="Nowhere 1")
+        branch = Branch(id=warehouse_id, name="Warehouse", address="Nowhere 1", is_active=True)
         db.session.add(branch)
         slot = DeliverySlot(
             branch_id=warehouse_id,

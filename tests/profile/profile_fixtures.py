@@ -16,6 +16,7 @@ def customer_user(session):
         phone="1234567890",
         password_hash="hash",
         role=Role.CUSTOMER,
+        is_active=True,
     )
     session.add(user)
     session.commit()

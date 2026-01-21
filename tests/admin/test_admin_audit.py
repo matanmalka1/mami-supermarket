@@ -14,6 +14,7 @@ def admin_user(session):
         full_name="Admin User",
         password_hash="hash",
         role=Role.ADMIN,
+        is_active=True,
     )
     session.add(user)
     session.commit()
@@ -30,7 +31,7 @@ class TestAuditEndpoints:
             entity_type="User",
             entity_id=admin_user.id,
             action="UPDATE",
-            user_id=admin_user.id,
+            actor_user_id=admin_user.id,
             old_value={"email": "old@example.com"},
             new_value={"email": "new@example.com"},
         )
@@ -38,7 +39,7 @@ class TestAuditEndpoints:
             entity_type="Product",
             entity_id=admin_user.id,
             action="CREATE",
-            user_id=admin_user.id,
+            actor_user_id=admin_user.id,
             new_value={"name": "New Product"},
         )
         session.add_all([audit1, audit2])
@@ -52,7 +53,8 @@ class TestAuditEndpoints:
             assert response.status_code == 200
             data = response.get_json()
             assert "data" in data
-            assert "total" in data
+            assert "pagination" in data
+            assert "total" in data["pagination"]
             assert isinstance(data["data"], list)
 
     def test_filter_by_entity_type(self, test_app, admin_user, auth_header, session):
@@ -61,7 +63,7 @@ class TestAuditEndpoints:
             entity_type="User",
             entity_id=admin_user.id,
             action="UPDATE",
-            user_id=admin_user.id,
+            actor_user_id=admin_user.id,
             old_value={"email": "old@example.com"},
             new_value={"email": "new@example.com"},
         )
@@ -85,7 +87,7 @@ class TestAuditEndpoints:
                 entity_type="Test",
                 entity_id=admin_user.id,
                 action="CREATE",
-                user_id=admin_user.id,
+                actor_user_id=admin_user.id,
                 new_value={"index": i},
             )
             session.add(audit)
@@ -98,7 +100,7 @@ class TestAuditEndpoints:
             )
             assert response.status_code == 200
             data = response.get_json()
-            assert data["limit"] == 2
+            assert data["pagination"]["limit"] == 2
             assert len(data["data"]) <= 2
 
     def test_requires_admin_role(self, test_app, session, auth_header):

@@ -14,6 +14,7 @@ def admin_user(session):
         full_name="Admin User",
         password_hash="hash",
         role=Role.ADMIN,
+        is_active=True,
     )
     session.add(user)
     session.commit()

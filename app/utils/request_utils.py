@@ -15,7 +15,7 @@ def current_user_id() -> UUID:
 
 def parse_json_or_400() -> dict:
     body = request.get_json()
-    if not body:
+    if body is None:
         raise DomainError("BAD_REQUEST", "Missing JSON body", status_code=400)
     return body
 

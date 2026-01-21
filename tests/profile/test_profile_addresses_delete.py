@@ -3,7 +3,7 @@
 import pytest
 from app.models import User, Address
 from app.models.enums import Role
-from tests.profile_fixtures import customer_user, customer_with_addresses
+from tests.profile.profile_fixtures import customer_user, customer_with_addresses
 
 
 class TestDeleteAddress:

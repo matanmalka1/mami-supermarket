@@ -40,7 +40,7 @@ class BranchCoreService:
         total = db.session.scalar(
             select(func.count()).select_from(Branch).where(Branch.is_active.is_(True))
         )
-        return ([BranchResponse(**b.__dict__) for b in branches], total or 0)
+        return ([BranchResponse(id=b.id, name=b.name, address=b.address, is_active=b.is_active) for b in branches], total or 0)
 
     @staticmethod
     def create_branch(name: str, address: str) -> BranchResponse:

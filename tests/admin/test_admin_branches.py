@@ -14,6 +14,7 @@ def admin_user(session):
         full_name="Admin User",
         password_hash="hash",
         role=Role.ADMIN,
+        is_active=True,
     )
     session.add(user)
     session.commit()
@@ -38,14 +39,14 @@ class TestBranchManagement:
 
     def test_update_branch(self, test_app, admin_user, auth_header, session):
         """Should update branch details."""
-        branch = Branch(name="Old Branch", address="Old Address")
+        branch = Branch(name="Old Branch", address="Old Address", is_active=True)
         session.add(branch)
         session.commit()
 
         with test_app.test_client() as client:
             response = client.patch(
                 f"/api/v1/admin/branches/{branch.id}",
-                json={"name": "Updated Branch"},
+                json={"name": "Updated Branch", "address": "Old Address"},
                 headers=auth_header(admin_user),
             )
             assert response.status_code == 200
@@ -77,19 +78,19 @@ class TestInventoryManagement:
         session.add(category)
         session.flush()
         product = Product(name="Test", sku="SKU1", price="10.00", category_id=category.id)
-        branch = Branch(name="Branch", address="Addr")
+        branch = Branch(name="Branch", address="Addr", is_active=True)
         session.add_all([product, branch])
         session.flush()
-        inventory = Inventory(product_id=product.id, branch_id=branch.id, quantity=10)
+        inventory = Inventory(product_id=product.id, branch_id=branch.id, available_quantity=10)
         session.add(inventory)
         session.commit()
 
         with test_app.test_client() as client:
-            response = client.patch(
-                f"/api/v1/admin/branches/{branch.id}/inventory/{product.id}",
-                json={"quantity": 50},
+            response = client.put(
+                f"/api/v1/admin/inventory/{inventory.id}",
+                json={"available_quantity": 50, "reserved_quantity": 0},
                 headers=auth_header(admin_user),
             )
             assert response.status_code == 200
             data = response.get_json()["data"]
-            assert data["quantity"] == 50
+            assert data["available_quantity"] == 50

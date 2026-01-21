@@ -1,7 +1,7 @@
 """Tests for user profile update endpoints."""
 
 import pytest
-from tests.profile_fixtures import customer_user
+from tests.profile.profile_fixtures import customer_user
 
 
 class TestUpdatePhone:

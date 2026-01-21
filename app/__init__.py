@@ -8,6 +8,7 @@ from .utils.logging_config import setup_structured_logging
 from .routes import (
     admin_branches_routes,
     admin_catalog_routes,
+    admin_users_routes,
     auth_routes,
     branches_routes,
     cart_routes,
@@ -63,6 +64,7 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(audit_routes.blueprint, url_prefix="/api/v1/admin/audit")
     app.register_blueprint(admin_catalog_routes.blueprint, url_prefix="/api/v1/admin")
     app.register_blueprint(admin_branches_routes.blueprint, url_prefix="/api/v1/admin")
+    app.register_blueprint(admin_users_routes.blueprint, url_prefix="/api/v1/admin/users")
     # Health endpoints should not be rate-limited.
     limiter.exempt(health_routes.blueprint)
 

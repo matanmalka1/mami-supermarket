@@ -1,7 +1,7 @@
 """Tests for address list and create endpoints."""
 
 import pytest
-from tests.profile_fixtures import customer_user, customer_with_addresses
+from tests.profile.profile_fixtures import customer_user, customer_with_addresses
 
 
 class TestListAddresses:

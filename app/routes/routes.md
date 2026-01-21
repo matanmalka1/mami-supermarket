@@ -8,14 +8,32 @@ This document lists all available API endpoints in the Mami Supermarket backend.
 
 **Authentication**: Most endpoints require JWT authentication via `Authorization: Bearer <token>` header.
 
-**Response Format**: All responses follow a consistent envelope structure:
+**Response Format**: Responses use different envelopes based on type:
+
+**For lists (with pagination):**
 
 ```json
 {
-  "data": { ... },
+  "data": [...],
   "total": 100,
   "limit": 50,
   "offset": 0
+}
+```
+
+**For single items:**
+
+```json
+{
+  "data": { ... }
+}
+```
+
+**For actions (delete/toggle):**
+
+```json
+{
+  "data": { "success": true }
 }
 ```
 
@@ -30,6 +48,8 @@ This document lists all available API endpoints in the Mami Supermarket backend.
   }
 }
 ```
+
+**Field Naming**: All request/response bodies use **snake_case** for field names (e.g., `cart_id`, `delivery_slot_id`, `is_active`). Frontend must convert from camelCase if needed.
 
 ---
 
@@ -72,14 +92,6 @@ Change password for authenticated user.
 
 ## Profile & User Management (`/api/v1/me`)
 
-### `PATCH /api/v1/me/phone`
-
-Update user's phone number.
-
-- **Auth**: Required (JWT)
-- **Body**: `{ phone }`
-- **Response**: Updated user object
-
 ### `PATCH /api/v1/me`
 
 Update user profile information.
@@ -87,6 +99,7 @@ Update user profile information.
 - **Auth**: Required (JWT)
 - **Body**: `{ full_name, phone }` (fields optional)
 - **Response**: Updated user object
+- **Note**: Both fields are optional; send only what needs updating
 
 ### `GET /api/v1/me/addresses`
 
@@ -102,6 +115,7 @@ Add a new delivery address.
 - **Auth**: Required (JWT)
 - **Body**: `{ street, city, postal_code, country, is_default }`
 - **Response**: Created address object (201)
+- **Note**: Current model includes basic fields. Consider extending with: `apartment`, `floor`, `entrance`, `instructions`, `label` (Home/Work) for production use
 
 ### `PUT /api/v1/me/addresses/{id}`
 
@@ -275,12 +289,12 @@ Preview order totals and fees before confirmation.
 Confirm and create order with payment.
 
 - **Auth**: Required (JWT)
-- **Headers**: 
+- **Headers**:
   - **`Idempotency-Key`** (required): Unique string to prevent duplicate orders
 - **Body**: `{ cart_id, branch_id, delivery_slot_id, delivery_address, payment_method, payment_token }`
 - **Idempotency Behavior**:
-  - First request with a key: Creates new order
-  - Repeated request with same key + same payload: Returns same order (201)
+  - First request with a key: Creates new order (201)
+  - Repeated request with same key + same payload: Returns cached order (200)
   - Same key + different payload: Returns 409 `IDEMPOTENCY_KEY_REUSE_MISMATCH`
   - Same key while processing: Returns 409 `IDEMPOTENCY_IN_PROGRESS`
 - **Process**:
@@ -295,7 +309,7 @@ Confirm and create order with payment.
   9. Mark idempotency as SUCCEEDED
   10. Commit transaction
 - **Response**: Order object with order_number (201)
-- **Errors**: 
+- **Errors**:
   - `MISSING_IDEMPOTENCY_KEY` (400) - Header not provided
   - `INSUFFICIENT_STOCK` (409) - Not enough inventory
   - `IDEMPOTENCY_KEY_REUSE_MISMATCH` (409) - Same key, different payload
@@ -378,9 +392,16 @@ Update order status.
 - **Path Params**: `order_id` (UUID)
 - **Body**: `{ status }` (OrderStatus enum)
 - **Role-based transitions**:
-  - Employee: CREATED→IN_PROGRESS, IN_PROGRESS→READY (if all picked), IN_PROGRESS→MISSING (if any missing)
-  - Manager/Admin: All transitions allowed
+  - Employee:
+    - CREATED → IN_PROGRESS
+    - IN_PROGRESS → READY (if all picked)
+    - IN_PROGRESS → MISSING (if any missing)
+  - Manager/Admin: All transitions allowed, including:
+    - READY → OUT_FOR_DELIVERY
+    - OUT_FOR_DELIVERY → DELIVERED
+    - Any status → CANCELED
 - **Response**: Updated order object
+- **Note**: Employees cannot mark orders as DELIVERED or CANCELED; these require Manager/Admin approval
 
 ---
 
@@ -414,6 +435,14 @@ List all stock requests (for review).
   - `limit` (default: 50)
   - `offset` (default: 0)
 - **Response**: Array of stock requests with pagination
+
+### `GET /api/v1/stock-requests/admin/{request_id}`
+
+Get detailed stock request information.
+
+- **Auth**: Required (Manager, Admin)
+- **Path Params**: `request_id` (UUID)
+- **Response**: StockRequest object with full details
 
 ### `PATCH /api/v1/stock-requests/admin/{request_id}/review`
 
@@ -569,6 +598,60 @@ Update inventory quantity for a specific branch-product combination.
 
 ---
 
+## Admin - User Management (`/api/v1/admin/users`)
+
+### `GET /api/v1/admin/users`
+
+List all users with optional filters.
+
+- **Auth**: Required (Manager, Admin)
+- **Query Params**:
+  - `q` (string, optional) - Search by email or full name
+  - `role` (CUSTOMER|EMPLOYEE|MANAGER|ADMIN, optional) - Filter by role
+  - `isActive` (boolean, optional) - Filter by active status
+  - `limit` (default: 50, max: 200)
+  - `offset` (default: 0)
+- **Response**: Array of users with pagination
+
+### `GET /api/v1/admin/users/{user_id}`
+
+Get detailed user information.
+
+- **Auth**: Required (Manager, Admin)
+- **Path Params**: `user_id` (UUID)
+- **Response**: User object with full details
+- **Errors**: USER_NOT_FOUND (404)
+
+### `PATCH /api/v1/admin/users/{user_id}`
+
+Update user administrative fields.
+
+- **Auth**: Required (Manager, Admin)
+- **Path Params**: `user_id` (UUID)
+- **Body**: `{ role, is_active, full_name, phone }` (all optional)
+- **Audit**: Logs USER_UPDATED with old/new values for ALL changed fields (including profile data)
+- **Response**: Updated user object
+- **Note**: Allows admin to edit user profile data (full_name, phone) in addition to administrative fields (role, is_active)
+- **Errors**:
+  - USER_NOT_FOUND (404)
+  - CANNOT_MODIFY_SELF_ROLE (403) - Cannot change own role
+
+### `PATCH /api/v1/admin/users/{user_id}/toggle`
+
+Toggle user active status (soft delete). Convenience endpoint; same result as PATCH with `is_active`.
+
+- **Auth**: Required (Manager, Admin)
+- **Path Params**: `user_id` (UUID)
+- **Query Params**: `active` (boolean, required)
+- **Audit**: Logs USER_TOGGLED with old/new status
+- **Response**: Updated user object
+- **Note**: Follows same pattern as category/product/branch toggle endpoints for consistency
+- **Errors**:
+  - USER_NOT_FOUND (404)
+  - CANNOT_DEACTIVATE_SELF (403) - Cannot deactivate own account
+
+---
+
 ## Admin - Audit (`/api/v1/admin/audit`)
 
 ### `GET /api/v1/admin/audit`
@@ -601,12 +684,12 @@ Health check endpoint (no auth, no rate limit).
 
 ## Summary
 
-**Total Endpoints**: 56
+**Total Endpoints**: 60
 
 **By Category**:
 
 - Authentication: 4 endpoints
-- Profile & User Management: 7 endpoints
+- Profile & User Management: 6 endpoints (removed duplicate /me/phone)
 - Catalog (Public): 5 endpoints
 - Branches (Public): 2 endpoints
 - Cart: 5 endpoints
@@ -616,6 +699,7 @@ Health check endpoint (no auth, no rate limit).
 - Stock Requests: 5 endpoints
 - Admin - Catalog: 6 endpoints
 - Admin - Branches: 8 endpoints
+- Admin - User Management: 4 endpoints
 - Admin - Audit: 1 endpoint
 - Health: 1 endpoint
 
@@ -624,21 +708,26 @@ Health check endpoint (no auth, no rate limit).
 - **Public** (No Auth): 8 endpoints
 - **Customer**: 22 endpoints (auth required)
 - **Employee**: 9 endpoints
-- **Manager/Admin**: 20+ endpoints (full access)
+- **Manager/Admin**: 24+ endpoints (full access)
 
 ---
 
 ## Notes
 
-1. **Pagination**: Default limit is 50, maximum is 200. Always returns `total`, `limit`, `offset` in metadata.
-2. **Soft Delete**: Products, categories, and branches use `is_active` flag instead of physical deletion.
-3. **Ownership**: Customers can only access their own carts and orders (404 for unauthorized access).
-4. **Inventory Locking**: Checkout uses pessimistic locking (`FOR UPDATE`) to prevent overselling.
-5. **Audit Trail**: All sensitive operations (inventory changes, order status, payments) are logged.
-6. **Idempotency**: 
+1. **Pagination**: Default limit is 50, maximum is 200. List endpoints return `data`, `total`, `limit`, `offset`. Single-item endpoints return only `data`.
+2. **Field Naming**: All API requests/responses use **snake_case** (e.g., `cart_id`, `is_active`). Clients using camelCase must convert.
+3. **Soft Delete**: Products, categories, branches, and users use `is_active` flag instead of physical deletion.
+4. **Ownership**: Customers can only access their own carts and orders (404 for unauthorized access).
+5. **Inventory Locking**: Checkout uses pessimistic locking (`FOR UPDATE`) to prevent overselling.
+6. **Audit Trail**: All sensitive operations (inventory changes, order status, payments, user role/profile changes) are logged with old/new values.
+7. **Idempotency**:
    - Checkout confirm requires `Idempotency-Key` header (not in body)
    - Keys are unique per user and expire after 24 hours
    - Status tracking: IN_PROGRESS → SUCCEEDED/FAILED
+   - First request returns 201, duplicate requests return 200
    - Concurrent requests with same key return 409 IDEMPOTENCY_IN_PROGRESS
    - Same key with different payload returns 409 IDEMPOTENCY_KEY_REUSE_MISMATCH
-7. **Delivery Source**: All delivery orders deduct from `DELIVERY_SOURCE_BRANCH_ID` branch.
+8. **Delivery Source**: All delivery orders deduct from `DELIVERY_SOURCE_BRANCH_ID` branch.
+9. **Admin Self-Protection**: Admins cannot modify their own role or deactivate their own account.
+10. **Status Transitions**: Employees have limited order status transition permissions; Manager/Admin can perform all transitions including final delivery/cancellation.
+11. **Toggle Endpoints**: Provided for consistency across admin resources (categories, products, branches, users). Equivalent to PATCH with `is_active` field.

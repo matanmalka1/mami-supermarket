@@ -47,6 +47,14 @@ def list_admin_requests():
     rows, total = StockRequestService.list_admin(status, limit, offset)
     return jsonify(success_envelope(rows, pagination_envelope(total, limit, offset)))
 
+@blueprint.get("/admin/<uuid:request_id>")
+@jwt_required()
+@require_role(Role.MANAGER, Role.ADMIN)
+def get_admin_request(request_id: UUID):
+    """Get detailed stock request information."""
+    result = StockRequestService.get_request(request_id)
+    return jsonify(success_envelope(result))
+
 @blueprint.patch("/admin/<uuid:request_id>/review")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)

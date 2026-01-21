@@ -42,7 +42,13 @@ class CheckoutService:
         )
 
     @staticmethod
-    def confirm(payload: CheckoutConfirmRequest, idempotency_key: str) -> CheckoutConfirmResponse:
+    def confirm(payload: CheckoutConfirmRequest, idempotency_key: str) -> tuple[CheckoutConfirmResponse, bool]:
+        """
+        Confirm checkout and create order.
+        
+        Returns:
+            (response, is_new) - is_new=True for new orders (201), False for cached (200)
+        """
         branch_id = CheckoutBranchValidator.resolve_branch(payload.fulfillment_type, payload.branch_id)
         cart = CheckoutCartLoader.load(payload.cart_id, for_update=True)
         CheckoutBranchValidator.validate_delivery_slot(payload.fulfillment_type, payload.delivery_slot_id, branch_id)
@@ -54,9 +60,9 @@ class CheckoutService:
             cart.user_id, idempotency_key, request_hash
         )
         
-        # If not new, return cached response (SUCCEEDED status)
+        # If not new, return cached response (SUCCEEDED status) with 200 status
         if not is_new:
-            return CheckoutConfirmResponse.model_validate(idempotency_record.response_payload)
+            return CheckoutConfirmResponse.model_validate(idempotency_record.response_payload), False
 
         inventory = CheckoutInventoryManager(branch_id)
         inv_map = inventory.lock_inventory(cart.items)
@@ -104,7 +110,7 @@ class CheckoutService:
                 )
             raise
 
-        return response_payload
+        return response_payload, True  # is_new=True for newly created orders
 
     @staticmethod
     def _hash_request(payload: CheckoutConfirmRequest) -> str:

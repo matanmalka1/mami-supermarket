@@ -7,6 +7,7 @@ class StockRequestService:
     create_request = staticmethod(StockRequestEmployeeService.create_request)
     list_my = staticmethod(StockRequestEmployeeService.list_my)
     list_admin = staticmethod(StockRequestReviewService.list_admin)
+    get_request = staticmethod(StockRequestReviewService.get_request)
     review = staticmethod(StockRequestReviewService.review)
     bulk_review = staticmethod(StockRequestReviewService.bulk_review)
 

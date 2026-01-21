@@ -23,6 +23,20 @@ class StockRequestReviewService:
         return [to_response(row) for row in rows], total or 0
 
     @staticmethod
+    def get_request(request_id: UUID) -> StockRequestResponse:
+        """Get detailed stock request information."""
+        stock_request = db.session.execute(
+            sa.select(StockRequest)
+            .where(StockRequest.id == request_id)
+            .options(selectinload(StockRequest.branch), selectinload(StockRequest.product))
+        ).scalar_one_or_none()
+        
+        if not stock_request:
+            raise DomainError("STOCK_REQUEST_NOT_FOUND", "Stock request not found", status_code=404)
+        
+        return to_response(stock_request)
+
+    @staticmethod
     def review(
         request_id: UUID,
         status: StockRequestStatus,

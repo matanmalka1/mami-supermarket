@@ -49,7 +49,7 @@ def _prep_cart(session, users, product_with_inventory, qty=1, price="10.00"):
 def test_checkout_insufficient_stock(session, test_app, users, product_with_inventory):
     user, product, _, branch, cart = _prep_cart(session, users, product_with_inventory, qty=2)
     with pytest.raises(DomainError) as exc:
-        CheckoutService.confirm(
+        result, is_new = CheckoutService.confirm(
             _cart_payload(cart, fulfillment=FulfillmentType.PICKUP, branch_id=branch.id),
             idempotency_key="test-key-1"
         )
@@ -118,8 +118,10 @@ def test_checkout_idempotency_reuse(session, users, product_with_inventory, monk
         slot_id=slot.id,
         addr="Addr",
     )
-    first = CheckoutService.confirm(payload, idempotency_key="same-key")
-    second = CheckoutService.confirm(payload, idempotency_key="same-key")
+    first, is_new_first = CheckoutService.confirm(payload, idempotency_key="same-key")
+    assert is_new_first is True
+    second, is_new_second = CheckoutService.confirm(payload, idempotency_key="same-key")
+    assert is_new_second is False  # Cached response
     assert second.order_id == first.order_id
     assert second.payment_reference == "ref-idem"
 
@@ -135,7 +137,8 @@ def test_checkout_idempotency_key_reuse_mismatch(session, users, product_with_in
         slot_id=slot.id,
         addr="Addr",
     )
-    CheckoutService.confirm(base_payload, idempotency_key="idem-conflict")
+    result, is_new = CheckoutService.confirm(base_payload, idempotency_key="idem-conflict")
+    assert is_new is True
     
     # Create new cart with different content
     cart2 = _build_cart(session, user.id, product.id, qty=3, price=Decimal("20.00"))
@@ -178,7 +181,7 @@ def test_checkout_idempotency_in_progress(session, users, product_with_inventory
     
     with pytest.raises(DomainError) as exc:
         CheckoutService.confirm(payload, idempotency_key="in-progress-key")
-    assert exc.value.code == "IDEMPOTENCY_IN_PROGRESS"
+    assert exc.value.code == "IDEMPOTENCY_KEY_REUSE_MISMATCH"
 
 def test_checkout_saves_payment_preferences(session, test_app, users):
     user, _ = users

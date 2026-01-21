@@ -31,5 +31,8 @@ def confirm():
         raise DomainError("MISSING_IDEMPOTENCY_KEY", "Idempotency-Key header is required", status_code=400)
     
     payload = _parse(CheckoutConfirmRequest, request.get_json())
-    result = CheckoutService.confirm(payload, idempotency_key)
-    return jsonify(success_envelope(result)), 201
+    result, is_new = CheckoutService.confirm(payload, idempotency_key)
+    
+    # Return 201 for new orders, 200 for cached (idempotent) responses
+    status_code = 201 if is_new else 200
+    return jsonify(success_envelope(result)), status_code
