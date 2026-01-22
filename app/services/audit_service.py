@@ -20,12 +20,14 @@ class AuditService:
         context: dict[str, object] | None = None,
     ) -> Audit:
         session: Session = db.session
+        # Audit table enforces a non-null entity_id; fall back to actor or a new UUID
+        resolved_entity_id = entity_id or actor_user_id or uuid4()
         entry = Audit(
             id=uuid4(),
             entity_type=entity_type,
             action=action,
             actor_user_id=actor_user_id,
-            entity_id=entity_id,
+            entity_id=resolved_entity_id,
             old_value=old_value,
             new_value=new_value,
             context=context,
