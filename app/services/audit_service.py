@@ -9,6 +9,17 @@ from ..models import Audit
 
 class AuditService:
     @staticmethod
+    def _serialize_for_json(value):
+        from datetime import time, date, datetime
+        if isinstance(value, (time, date, datetime)):
+            return value.isoformat()
+        if isinstance(value, dict):
+            return {k: AuditService._serialize_for_json(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [AuditService._serialize_for_json(v) for v in value]
+        return value
+
+    @staticmethod
     def log_event(
         *,
         entity_type: str,
@@ -28,9 +39,9 @@ class AuditService:
             action=action,
             actor_user_id=actor_user_id,
             entity_id=resolved_entity_id,
-            old_value=old_value,
-            new_value=new_value,
-            context=context,
+            old_value=AuditService._serialize_for_json(old_value) if old_value else None,
+            new_value=AuditService._serialize_for_json(new_value) if new_value else None,
+            context=AuditService._serialize_for_json(context) if context else None,
             created_at=datetime.utcnow(),
         )
         session.add(entry)

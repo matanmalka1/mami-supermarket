@@ -1,4 +1,5 @@
 import sys
+import pytest
 import uuid
 from pathlib import Path
 from datetime import time
@@ -16,6 +17,23 @@ from app.config import AppConfig
 from app.extensions import db
 from app.models import Base, Branch, Category, DeliverySlot, Inventory, Product, User
 from app.models.enums import Role
+
+# יצירת משתמש עם role דינמי
+@pytest.fixture
+def create_user_with_role(session):
+    def _create(role):
+        unique = uuid.uuid4().hex[:8]
+        user = User(
+            email=f"{role.value.lower()}_{unique}@example.com",
+            full_name=f"{role.value.title()} User {unique}",
+            password_hash="hash",
+            role=role,
+            is_active=True,
+        )
+        session.add(user)
+        session.commit()
+        return user
+    return _create
 
 
 @pytest.fixture(scope="session")

@@ -12,11 +12,14 @@ from app.middleware.error_handler import DomainError
 from app.models.enums import OrderStatus, Role
 from app.services.ops_service import OpsOrderService
 from app.services.ops.custom_ops_service import create_batch_for_ops, get_ops_performance
+
+from app.services.stock_requests_service import StockRequestService
+from app.schemas.stock_requests import StockRequestCreateRequest
+from app.schemas.ops import UpdatePickStatusRequest, UpdateOrderStatusRequest
 from app.utils.request_utils import current_user_id, parse_pagination, parse_iso_date
 from app.utils.responses import pagination_envelope, success_envelope
 
 blueprint = Blueprint("ops", __name__)
-
 
 def _parse_filters() -> tuple[OrderStatus | None, datetime | None, datetime | None, int, int]:
     status_val = request.args.get("status")
@@ -51,11 +54,8 @@ def get_order(order_id: UUID):
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
 def update_picked_status(order_id: UUID, item_id: UUID):
-    payload = request.get_json() or {}
-    new_status = payload.get("picked_status")
-    if not new_status:
-        raise DomainError("BAD_REQUEST", "picked_status is required", status_code=400)
-    order = OpsOrderService.update_item_status(order_id, item_id, new_status, current_user_id())
+    payload = UpdatePickStatusRequest.model_validate(request.get_json() or {})
+    order = OpsOrderService.update_item_status(order_id, item_id, payload.picked_status, current_user_id())
     return jsonify(success_envelope(order))
 
 # Endpoint: POST /ops/batches
@@ -65,8 +65,30 @@ def update_picked_status(order_id: UUID, item_id: UUID):
 def create_batch():
     user_id = current_user_id()
     payload = request.get_json() or {}
+    # Optionally: define a Pydantic schema for batch creation if structure is known
     batch_data = create_batch_for_ops(user_id, payload)
     return jsonify(success_envelope(batch_data)), 201
+
+# Endpoint: GET /api/v1/ops/stock-requests
+@blueprint.get("/stock-requests")
+@jwt_required()
+@require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
+def list_ops_stock_requests():
+    limit, offset = parse_pagination()
+    branch_id = request.args.get("branchId")
+    status = request.args.get("status")
+    branch_id_uuid = UUID(branch_id) if branch_id else None
+    rows, total = StockRequestService.list_ops(branch_id_uuid, status, limit, offset)
+    return jsonify(success_envelope(rows, pagination_envelope(total, limit, offset)))
+
+# Endpoint: POST /api/v1/ops/stock-requests
+@blueprint.post("/stock-requests")
+@jwt_required()
+@require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
+def create_ops_stock_request():
+    payload = StockRequestCreateRequest.model_validate(request.get_json() or {})
+    result = StockRequestService.create_request(current_user_id(), payload)
+    return jsonify(success_envelope(result)), 201
 
 # Endpoint: GET /ops/performance
 @blueprint.get("/performance")
@@ -92,11 +114,8 @@ def get_map():
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
 def update_order_status(order_id: UUID):
-    payload = request.get_json() or {}
-    new_status = payload.get("status")
-    if not new_status:
-        raise DomainError("BAD_REQUEST", "status is required", status_code=400)
+    payload = UpdateOrderStatusRequest.model_validate(request.get_json() or {})
     user = getattr(g, "current_user", None)
     actor_role = user.role if user else Role.EMPLOYEE
-    order = OpsOrderService.update_order_status(order_id, new_status, current_user_id(), actor_role)
+    order = OpsOrderService.update_order_status(order_id, payload.status, current_user_id(), actor_role)
     return jsonify(success_envelope(order))

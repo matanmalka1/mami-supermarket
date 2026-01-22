@@ -5,6 +5,11 @@ from pydantic import Field
 from .common import DefaultModel
 from ..models.enums import Role
 
+class ResetPasswordRequest(DefaultModel):
+    email: str = Field(pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    token: str
+    new_password: str = Field(min_length=8)
+
 class RegisterRequest(DefaultModel):
     # Basic email shape check; allow anything non-space around @ and a dot.
     email: str = Field(pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")

@@ -13,8 +13,10 @@ from app.schemas.auth import (
     LoginRequest,
     RegisterRequest,
     UserResponse,
+    ResetPasswordRequest,
 )
 from app.services.auth_service import AuthService
+from app.services.password_reset_service import PasswordResetService
 
 blueprint = Blueprint("auth", __name__)
 
@@ -96,10 +98,11 @@ def forgot_password():
             action="FORGOT_PASSWORD_REQUEST",
             context={"email": email, "result": "USER_NOT_FOUND"},
         )
-        return jsonify({"data": "Password reset link sent"}), 200
+        return jsonify(success_envelope("Password reset link sent")), 200
 
-    # יצירת טוקן איפוס אמיתי (uuid4)
-    reset_token = str(uuid.uuid4())
+    # יצירת טוקן איפוס אמיתי
+    import uuid
+    reset_token = PasswordResetService.create_token(user.id)
     # TODO: שליחת מייל בפועל עם הטוקן
 
     AuditService.log_event(
@@ -107,10 +110,29 @@ def forgot_password():
         action="FORGOT_PASSWORD_REQUEST",
         actor_user_id=user.id,
         entity_id=user.id,
-        context={"email": email, "result": "SUCCESS", "reset_token": reset_token},
+        context={"email": email, "result": "SUCCESS", "reset_token": "***"},
     )
-    return jsonify({"data": "Password reset link sent"}), 200
+    return jsonify(success_envelope("Password reset link sent")), 200
 
+# Endpoint: POST /auth/reset-password
+@blueprint.post("/reset-password")
+def reset_password():
+    payload = ResetPasswordRequest.model_validate(request.get_json() or {})
+    user = AuthService.get_user_by_email(payload.email)
+    if not user:
+        raise DomainError("USER_NOT_FOUND", "User not found", status_code=404)
+    # אימות טוקן
+    PasswordResetService.verify_and_consume_token(payload.token, user.id)
+    # עדכון סיסמה
+    AuthService.change_password(user.id, payload.new_password, payload.new_password)
+    AuditService.log_event(
+        entity_type="user_password_reset",
+        action="RESET_PASSWORD",
+        actor_user_id=user.id,
+        entity_id=user.id,
+        context={"email": user.email},
+    )
+    return jsonify(success_envelope({"message": "Password has been reset"})), 200
 
 @blueprint.post("/change-password")
 @jwt_required()

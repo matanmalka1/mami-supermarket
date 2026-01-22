@@ -55,7 +55,7 @@ def get_admin_request(request_id: UUID):
     result = StockRequestService.get_request(request_id)
     return jsonify(success_envelope(result))
 
-@blueprint.patch("/admin/<uuid:request_id>/review")
+@blueprint.patch("/admin/<uuid:request_id>/resolve")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
 def review_request(request_id: UUID):

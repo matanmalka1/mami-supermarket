@@ -3,6 +3,8 @@ from typing import Generic, Mapping, TypeVar
 from decimal import Decimal
 from uuid import UUID
 from pydantic import BaseModel, Field
+from datetime import time, datetime, date
+
 
 T = TypeVar("T")
 
@@ -17,6 +19,8 @@ class DefaultModel(BaseModel):
             return str(value)
         if isinstance(value, UUID):
             return str(value)
+        if isinstance(value, (time, datetime, date)):
+            return value.isoformat()
         return value
 
     def model_dump(self, *args, **kwargs):

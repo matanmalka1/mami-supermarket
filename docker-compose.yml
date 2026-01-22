@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: matan
+      POSTGRES_PASSWORD: Aa100100!!
+      POSTGRES_DB: matan_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    command: python run.py
+    volumes:
+      - .:/app
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://matan:Aa100100!!@localhost:5432/matan_db
+      JWT_SECRET_KEY: supersecretkey
+      DELIVERY_SOURCE_BRANCH_ID: warehouse-uuid
+      DELIVERY_MIN_TOTAL: 150
+      DELIVERY_FEE_UNDER_MIN: 30
+      DEFAULT_LIMIT: 50
+      MAX_LIMIT: 200
+      CORS_ALLOWED_ORIGINS: http://localhost:3000, http://localhost:5173, http://localhost:5174
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

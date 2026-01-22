@@ -5,64 +5,54 @@ from app.models import User, Branch, Inventory, Product, Category
 from app.models.enums import Role
 
 
-@pytest.fixture
-def admin_user(session):
-    """Create admin user."""
-    session.query(User).delete()
-    user = User(
-        email="admin@example.com",
-        full_name="Admin User",
-        password_hash="hash",
-        role=Role.ADMIN,
-        is_active=True,
-    )
-    session.add(user)
-    session.commit()
-    return user
+
 
 
 class TestBranchManagement:
     """Tests for branch CRUD"""
 
-    def test_create_branch(self, test_app, admin_user, auth_header):
-        """Should create a new branch."""
+    def test_create_branch(self, test_app, auth_header, create_user_with_role):
+        """Should create a new branch (אמיתי)."""
+        admin = create_user_with_role(role=Role.ADMIN)
         with test_app.test_client() as client:
             response = client.post(
                 "/api/v1/admin/branches",
                 json={"name": "New Branch", "address": "456 New St"},
-                headers=auth_header(admin_user),
+                headers=auth_header(admin),
             )
             assert response.status_code == 201
             data = response.get_json()["data"]
             assert data["name"] == "New Branch"
             assert data["address"] == "456 New St"
 
-    def test_update_branch(self, test_app, admin_user, auth_header, session):
+    def test_update_branch(self, test_app, auth_header, create_user_with_role, session):
         """Should update branch details."""
         branch = Branch(name="Old Branch", address="Old Address", is_active=True)
         session.add(branch)
         session.commit()
 
+        admin = create_user_with_role(role=Role.ADMIN)
         with test_app.test_client() as client:
             response = client.patch(
                 f"/api/v1/admin/branches/{branch.id}",
                 json={"name": "Updated Branch", "address": "Old Address"},
-                headers=auth_header(admin_user),
+                headers=auth_header(admin),
             )
             assert response.status_code == 200
             data = response.get_json()["data"]
             assert data["name"] == "Updated Branch"
 
-    def test_toggle_branch(self, test_app, admin_user, auth_header, session):
+    def test_toggle_branch(self, test_app, auth_header, create_user_with_role, session):
         """Should toggle branch active status."""
         branch = Branch(name="Test", address="Test St", is_active=True)
         session.add(branch)
         session.commit()
 
+        admin = create_user_with_role(role=Role.ADMIN)
         with test_app.test_client() as client:
             response = client.patch(
                 f"/api/v1/admin/branches/{branch.id}/toggle?active=false",
-                headers=auth_header(admin_user),
+                headers=auth_header(admin),
             )
             assert response.status_code == 200
             data = response.get_json()["data"]
@@ -72,8 +62,8 @@ class TestBranchManagement:
 class TestInventoryManagement:
     """Tests for inventory management"""
 
-    def test_update_inventory(self, test_app, admin_user, auth_header, session):
-        """Should update inventory quantity."""
+    def test_update_inventory(self, test_app, auth_header, create_user_with_role, session):
+        """Should update inventory quantity (אמיתי)."""
         category = Category(name="Cat", description="Test")
         session.add(category)
         session.flush()
@@ -85,11 +75,12 @@ class TestInventoryManagement:
         session.add(inventory)
         session.commit()
 
+        admin = create_user_with_role(role=Role.ADMIN)
         with test_app.test_client() as client:
-            response = client.put(
+            response = client.patch(
                 f"/api/v1/admin/inventory/{inventory.id}",
                 json={"available_quantity": 50, "reserved_quantity": 0},
-                headers=auth_header(admin_user),
+                headers=auth_header(admin),
             )
             assert response.status_code == 200
             data = response.get_json()["data"]
