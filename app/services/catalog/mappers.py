@@ -11,6 +11,7 @@ def to_category_response(category: Category) -> CategoryResponse:
     return CategoryResponse(
         id=category.id,
         name=category.name,
+        icon_slug=getattr(category, 'icon_slug', None),
         description=category.description,
         is_active=category.is_active,
     )
@@ -44,6 +45,12 @@ def to_product_response(product: Product, branch_id: UUID | None) -> ProductResp
         name=product.name,
         sku=product.sku,
         price=product.price,
+        old_price=getattr(product, 'old_price', None),
+        unit=getattr(product, 'unit', None),
+        nutritional_info=getattr(product, 'nutritional_info', None),
+        is_organic=getattr(product, 'is_organic', False),
+        bin_location=getattr(product, 'bin_location', None),
+        image_url=getattr(product, 'image_url', None),
         description=product.description,
         category_id=product.category_id,
         is_active=product.is_active,

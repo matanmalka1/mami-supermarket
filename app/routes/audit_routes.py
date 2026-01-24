@@ -47,4 +47,4 @@ def _parse_filters() -> tuple[dict, int, int]:
 def list_audit():
     filters, limit, offset = _parse_filters()
     rows, total = AuditQueryService.list_logs(filters, limit, offset)
-    return jsonify(success_envelope(rows, pagination_envelope(total, limit, offset)))
+    return jsonify(success_envelope(rows, pagination=pagination_envelope(total, limit, offset)))

@@ -3,9 +3,7 @@
 import pytest
 from app.models import User, Category, Product
 from app.models.enums import Role
-
-
-
+import uuid
 
 
 class TestCategoryManagement:
@@ -69,21 +67,24 @@ class TestProductManagement:
 
         admin = create_user_with_role(role=Role.ADMIN)
         with test_app.test_client() as client:
+            unique_sku = f"SKU-{uuid.uuid4().hex[:8]}"
             response = client.post(
                 "/api/v1/admin/products",
                 json={
                     "name": "New Product",
-                    "sku": "SKU123",
+                    "sku": unique_sku,
                     "price": 99.99,
                     "category_id": str(category.id),
                     "description": "Test product",
                 },
                 headers=auth_header(admin),
             )
+            if response.status_code != 201:
+                print("RESPONSE JSON:", response.get_json())
             assert response.status_code == 201
             data = response.get_json()["data"]
             assert data["name"] == "New Product"
-            assert data["sku"] == "SKU123"
+            assert data["sku"] == unique_sku
 
     def test_update_product(self, test_app, auth_header, create_user_with_role, session):
         """Should update product details."""

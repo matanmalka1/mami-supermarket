@@ -6,6 +6,7 @@ from .common import DefaultModel, Pagination
 class CategoryResponse(DefaultModel):
     id: UUID
     name: str
+    icon_slug: str | None = None
     description: str | None
     is_active: bool = True
 
@@ -14,12 +15,22 @@ class ProductResponse(DefaultModel):
     name: str
     sku: str
     price: Decimal
+    old_price: Decimal | None = None
+    unit: str | None = None
+    nutritional_info: dict | None = None
+    is_organic: bool = False
+    bin_location: str | None = None
+    image_url: str | None = None
     description: str | None
     category_id: UUID
     is_active: bool
     in_stock_anywhere: bool
     in_stock_for_branch: bool | None = None
 
+# For featured endpoint
+class FeaturedProductsResponse(DefaultModel):
+    items: list[ProductResponse]
+    
 class ProductSearchResponse(DefaultModel):
     items: list[ProductResponse]
     pagination: Pagination

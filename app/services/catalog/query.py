@@ -57,19 +57,67 @@ class CatalogQueryService:
         branch_id: UUID | None,
         limit: int,
         offset: int,
+        min_price: float | None = None,
+        max_price: float | None = None,
+        organic_only: bool | None = None,
+        sort: str | None = None,
     ) -> tuple[list[ProductResponse], int]:
         base = sa.select(Product).where(Product.is_active.is_(True))
         if query:
             base = base.where(Product.name.ilike(f"%{query}%"))
         if category_id:
             base = base.where(Product.category_id == category_id)
+        if min_price is not None:
+            base = base.where(Product.price >= min_price)
+        if max_price is not None:
+            base = base.where(Product.price <= max_price)
+        if organic_only:
+            base = base.where(Product.is_organic.is_(True))
+        # Sorting
+        if sort == "price_asc":
+            base = base.order_by(Product.price.asc())
+        elif sort == "price_desc":
+            base = base.order_by(Product.price.desc())
+        elif sort == "updated_at_desc":
+            base = base.order_by(Product.updated_at.desc())
+        elif sort == "name_asc":
+            base = base.order_by(Product.name.asc())
+        elif sort == "name_desc":
+            base = base.order_by(Product.name.desc())
+        else:
+            base = base.order_by(Product.id.desc())
         stmt = base.options(selectinload(Product.inventory).selectinload(Inventory.branch)).offset(offset).limit(limit)
         products = db.session.execute(stmt).scalars().all()
         if in_stock is not None:
             products = [p for p in products if matches_stock(p, branch_id, in_stock)]
-        count_stmt = sa.select(sa.func.count()).select_from(base.subquery())
-        total = len(products) if in_stock is not None else db.session.scalar(count_stmt)
+            total = len(products)
+        else:
+            # Count total (ignoring offset/limit)
+            count_base = sa.select(sa.func.count()).select_from(Product).where(Product.is_active.is_(True))
+            if query:
+                count_base = count_base.where(Product.name.ilike(f"%{query}%"))
+            if category_id:
+                count_base = count_base.where(Product.category_id == category_id)
+            if min_price is not None:
+                count_base = count_base.where(Product.price >= min_price)
+            if max_price is not None:
+                count_base = count_base.where(Product.price <= max_price)
+            if organic_only:
+                count_base = count_base.where(Product.is_organic.is_(True))
+            total = db.session.scalar(count_base)
         return map_products(products, branch_id), total or 0
+
+    @staticmethod
+    def featured_products(limit: int, branch_id: UUID | None) -> list[ProductResponse]:
+        stmt = (
+            sa.select(Product)
+            .where(Product.is_active.is_(True))
+            .order_by(Product.updated_at.desc(), Product.id.desc())
+            .limit(limit)
+            .options(selectinload(Product.inventory).selectinload(Inventory.branch))
+        )
+        products = db.session.execute(stmt).scalars().all()
+        return map_products(products, branch_id)
 
     @staticmethod
     def autocomplete(query: str | None, limit: int) -> AutocompleteResponse:

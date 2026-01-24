@@ -18,7 +18,7 @@ def list_branches():
     limit = safe_int(request.args, "limit", 50)
     offset = safe_int(request.args, "offset", 0)
     branches, total = BranchService.list_branches(limit, offset)
-    return jsonify(success_envelope(branches, {"total": total, "limit": limit, "offset": offset}))
+    return jsonify(success_envelope(branches, pagination={"total": total, "limit": limit, "offset": offset}))
 
 
 @blueprint.get("/delivery-slots")

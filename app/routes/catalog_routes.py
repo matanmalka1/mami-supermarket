@@ -43,10 +43,23 @@ def search_products():
     category_id = optional_uuid(request.args, "categoryId")
     branch_id = optional_uuid(request.args, "branchId")
     in_stock = safe_bool(request.args.get("inStock"))
+    min_price = request.args.get("min_price", type=float)
+    max_price = request.args.get("max_price", type=float)
+    organic_only = safe_bool(request.args.get("organic_only"))
+    sort = request.args.get("sort")
     products, total = CatalogQueryService.search_products(
-        query, category_id, in_stock, branch_id, limit, offset
+        query, category_id, in_stock, branch_id, limit, offset, min_price, max_price, organic_only, sort
     )
-    return jsonify(success_envelope(products, {"total": total, "limit": limit, "offset": offset}))
+    has_next = total > (offset + limit)
+    meta = {"total": total, "limit": limit, "offset": offset, "has_next": has_next}
+    return jsonify(success_envelope(products, meta))
+    
+@blueprint.get("/products/featured")
+def featured_products():
+    limit = safe_int(request.args, "limit", 10)
+    branch_id = optional_uuid(request.args, "branchId")
+    products = CatalogQueryService.featured_products(limit, branch_id)
+    return jsonify(success_envelope(products))
 
 
 @blueprint.get("/products/autocomplete")

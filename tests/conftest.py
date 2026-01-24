@@ -18,6 +18,10 @@ from app.extensions import db
 from app.models import Base, Branch, Category, DeliverySlot, Inventory, Product, User
 from app.models.enums import Role
 
+@pytest.fixture
+def client(test_app):
+    return test_app.test_client()
+
 # יצירת משתמש עם role דינמי
 @pytest.fixture
 def create_user_with_role(session):
@@ -34,6 +38,30 @@ def create_user_with_role(session):
         session.commit()
         return user
     return _create
+
+@pytest.fixture
+def admin_token(session, test_app):
+    admin = session.query(User).filter_by(role=Role.ADMIN).first()
+    if not admin:
+        admin = User(email="admin@example.com", full_name="Admin", password_hash="hash", role=Role.ADMIN)
+        session.add(admin)
+        session.commit()
+    with test_app.app_context():
+        token = create_access_token(identity=str(admin.id), additional_claims={"role": admin.role.value})
+    return token
+
+# Ensure at least one product exists for contract tests
+@pytest.fixture(autouse=True)
+def ensure_product(session):
+    if not session.query(Product).first():
+        cat = session.query(Category).first()
+        if not cat:
+            cat = Category(name="TestCat", description="desc", is_active=True)
+            session.add(cat)
+            session.flush()
+        prod = Product(name="TestProd", sku="SKU123", price=10.0, category_id=cat.id, is_active=True)
+        session.add(prod)
+        session.commit()
 
 
 @pytest.fixture(scope="session")

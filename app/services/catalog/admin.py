@@ -77,6 +77,13 @@ class CatalogAdminService:
             db.session.commit()
         except IntegrityError as exc:
             db.session.rollback()
+            # Check for duplicate SKU
+            if "unique constraint" in str(exc).lower() or "unique" in str(exc).lower():
+                raise DomainError(
+                    "DUPLICATE_SKU",
+                    "A product with this SKU already exists.",
+                    details={"error": str(exc)},
+                ) from exc
             raise DomainError(
                 "DATABASE_ERROR",
                 "Could not create product",

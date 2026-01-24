@@ -24,6 +24,8 @@ from .routes import (
     audit_routes,
 )
 from app.middleware.cors import register_cors
+from app.routes import admin_analytics_routes
+
 
 def create_app(config: AppConfig | None = None) -> Flask:
     """Create and configure the Flask application."""
@@ -71,6 +73,7 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(admin_settings_routes.blueprint, url_prefix="/api/v1/admin")
     app.register_blueprint(admin_fleet_routes.blueprint, url_prefix="/api/v1/admin")
     app.register_blueprint(admin_users_routes.blueprint, url_prefix="/api/v1/admin/users")
+    app.register_blueprint(admin_analytics_routes.blueprint, url_prefix="/api/v1/admin/analytics")
     # Health endpoints should not be rate-limited.
     limiter.exempt(health_routes.blueprint)
 

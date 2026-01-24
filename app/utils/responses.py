@@ -18,10 +18,14 @@ def _serialize(value: Any) -> Any:
         return str(value)
     return value
 
-def success_envelope(data: Any, pagination: Mapping[str, Any] | None = None) -> dict[str, Any]:
+def success_envelope(data: Any, meta: Mapping[str, Any] | None = None, pagination: Mapping[str, Any] | None = None) -> dict[str, Any]:
     response: dict[str, Any] = {"data": _serialize(data)}
-    if pagination:
+    # If called with 'pagination', use that key (legacy/test endpoints)
+    if pagination is not None:
         response["pagination"] = _serialize(pagination)
+    # If called with 'meta', use that key (catalog contract endpoints)
+    elif meta is not None:
+        response["meta"] = _serialize(meta)
     return response
 
 def error_envelope(code: str, message: str, details: Mapping[str, Any] | None = None) -> dict[str, Any]:
