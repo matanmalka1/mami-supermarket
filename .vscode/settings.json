@@ -7,5 +7,6 @@
       "packageManager": "ms-python.python:pip"
     }
   ],
-  "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python"
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.terminal.activateEnvironment": true
 }
