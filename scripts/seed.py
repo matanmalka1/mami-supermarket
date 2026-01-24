@@ -112,6 +112,15 @@ def run_seed(session: Session) -> None:
     
     print("✅ Database seed completed successfully!")
 
+    # --- Verification step ---
+    from sqlalchemy import text
+    null_icon_slug = session.execute(text("SELECT COUNT(*) FROM categories WHERE icon_slug IS NULL")).scalar()
+    null_product_fields = session.execute(text("SELECT COUNT(*) FROM products WHERE image_url IS NULL OR bin_location IS NULL OR unit IS NULL")).scalar()
+    print(f"[Verification] categories with null icon_slug: {null_icon_slug}")
+    print(f"[Verification] products with null image_url/bin_location/unit: {null_product_fields}")
+    if null_icon_slug != 0 or null_product_fields != 0:
+        raise RuntimeError("Seed verification failed: DB contains nulls in required fields. See counts above.")
+
 
 def main() -> None:
     """Main entry point."""
