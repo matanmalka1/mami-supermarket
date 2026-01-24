@@ -17,3 +17,17 @@ def get_settings():
         "slots": "06:00-22:00",
     }
     return jsonify(success_envelope(settings))
+
+
+# Minimal update endpoint for settings
+@blueprint.put("/settings")
+@jwt_required()
+@require_role(Role.ADMIN, Role.MANAGER)
+def update_settings():
+    data = (request.get_json() or {})
+    # Only allow updating known settings
+    allowed_keys = {"delivery_min", "delivery_fee", "slots"}
+    updates = {k: v for k, v in data.items() if k in allowed_keys}
+    # In real app, persist to DB/config. Here, just echo back for demo.
+    # Optionally: update current_app.config if needed
+    return jsonify(success_envelope(updates))
