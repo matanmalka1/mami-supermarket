@@ -4,7 +4,12 @@ from flask import Blueprint, jsonify, request
 from app.middleware.auth import require_role
 from flask_jwt_extended import jwt_required
 from app.models.enums import Role
-from app.schemas.branches import BranchAdminRequest, DeliverySlotAdminRequest, InventoryUpdateRequest
+from app.schemas.branches import (
+    BranchAdminRequest,
+    DeliverySlotAdminRequest,
+    InventoryCreateRequest,
+    InventoryUpdateRequest,
+)
 from app.services.inventory_service import InventoryService
 from app.services.branch_service import BranchService
 from app.utils.request_params import optional_uuid, safe_int, toggle_flag
@@ -95,6 +100,15 @@ def update_inventory(inventory_id: UUID):
     payload = InventoryUpdateRequest.model_validate(request.get_json())
     inventory = InventoryService.update_inventory(inventory_id, payload)
     return jsonify(success_envelope(inventory))
+
+
+@blueprint.post("/inventory")
+@jwt_required()
+@require_role(Role.MANAGER, Role.ADMIN)
+def create_inventory():
+    payload = InventoryCreateRequest.model_validate(request.get_json())
+    inventory = InventoryService.create_inventory(payload)
+    return jsonify(success_envelope(inventory)), 201
 
 # Endpoint: GET /admin/delivery-slots
 @blueprint.get("/delivery-slots")

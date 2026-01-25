@@ -23,6 +23,7 @@ class InventoryResponse(DefaultModel):
     branch_name: str
     product_id: UUID
     product_name: str
+    product_sku: str
     available_quantity: int
     reserved_quantity: int
     limit: int
@@ -34,6 +35,12 @@ class InventoryListResponse(DefaultModel):
     pagination: Pagination
 
 class InventoryUpdateRequest(DefaultModel):
+    available_quantity: int = Field(ge=0)
+    reserved_quantity: int = Field(ge=0)
+
+class InventoryCreateRequest(DefaultModel):
+    product_id: UUID
+    branch_id: UUID
     available_quantity: int = Field(ge=0)
     reserved_quantity: int = Field(ge=0)
 
