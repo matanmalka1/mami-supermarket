@@ -25,3 +25,8 @@ class UpdatePickStatusRequest(DefaultModel):
 
 class UpdateOrderStatusRequest(DefaultModel):
     status: OrderStatus
+
+
+class DamageReportRequest(DefaultModel):
+    reason: str = Field(min_length=1, max_length=256)
+    notes: str | None = Field(None, max_length=512)

@@ -36,3 +36,8 @@ class AuthResponse(DefaultModel):
     access_token: str
     refresh_token: str | None = None
     expires_at: datetime
+
+
+class VerifyRegisterOTPRequest(DefaultModel):
+    email: str = Field(pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    code: str = Field(pattern=r"^\d{4}$")

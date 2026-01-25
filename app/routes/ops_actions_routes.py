@@ -1,0 +1,88 @@
+"""Admin-only ops actions that currently return placeholder data."""
+
+from __future__ import annotations
+from uuid import UUID
+
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required
+
+from app.extensions import db
+from app.middleware.auth import require_role
+from app.middleware.error_handler import DomainError
+from app.models import Branch, Order, OrderItem
+from app.models.enums import Role
+from app.services.audit_service import AuditService
+from app.schemas.ops import DamageReportRequest
+from app.utils.request_utils import current_user_id
+from app.utils.responses import success_envelope
+
+blueprint = Blueprint("ops_actions", __name__)
+
+
+@blueprint.post("/orders/<uuid:order_id>/sync")
+@jwt_required()
+@require_role(Role.ADMIN)
+def sync_order(order_id: UUID):
+    """Return a successful sync flag."""
+    order = db.session.get(Order, order_id)
+    if not order:
+        raise DomainError("NOT_FOUND", "Order not found", status_code=404)
+    AuditService.log_event(
+        entity_type="order",
+        action="SYNC",
+        actor_user_id=current_user_id(),
+        entity_id=order_id,
+        context={"status": order.status.value},
+    )
+    return jsonify(success_envelope({"synced": True}))
+
+
+@blueprint.post("/orders/<uuid:order_id>/items/<uuid:item_id>/report-damage")
+@jwt_required()
+@require_role(Role.ADMIN)
+def report_damage(order_id: UUID, item_id: UUID):
+    payload = DamageReportRequest.model_validate(request.get_json() or {})
+    order = db.session.get(Order, order_id)
+    if not order:
+        raise DomainError("NOT_FOUND", "Order not found", status_code=404)
+    item = (
+        db.session.query(OrderItem)
+        .filter_by(id=item_id, order_id=order_id)
+        .first()
+    )
+    if not item:
+        raise DomainError("NOT_FOUND", "Order item not found", status_code=404)
+    AuditService.log_event(
+        entity_type="order_item",
+        action="REPORT_DAMAGE",
+        actor_user_id=current_user_id(),
+        entity_id=item_id,
+        new_value={
+            "reason": payload.reason,
+            "notes": payload.notes,
+        },
+    )
+    return jsonify(success_envelope({"reported": True})), 201
+
+
+@blueprint.get("/map")
+@jwt_required()
+@require_role(Role.ADMIN)
+def map_view():
+    """Return available branch coordinates."""
+    branches = (
+        db.session.query(Branch)
+        .filter_by(is_active=True)
+        .order_by(Branch.name.asc())
+        .all()
+    )
+    branch_rows = [
+        {
+            "id": str(branch.id),
+            "name": branch.name,
+            "lat": branch.latitude,
+            "lng": branch.longitude,
+        }
+        for branch in branches
+    ]
+    return jsonify(success_envelope({"branches": branch_rows, "bins": []}))

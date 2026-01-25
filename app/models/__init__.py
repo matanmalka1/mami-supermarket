@@ -12,6 +12,7 @@ from .payment_token import PaymentToken
 from .product import Product
 from .stock_request import StockRequest
 from .user import User
+from .wishlist_item import WishlistItem
 from .enums import (
     CartStatus,
     FulfillmentType,
@@ -41,6 +42,7 @@ __all__ = [
     "Product",
     "StockRequest",
     "User",
+    "WishlistItem",
     "CartStatus",
     "FulfillmentType",
     "OrderStatus",

@@ -1,8 +1,10 @@
 """Profile and address management schemas."""
 
 from __future__ import annotations
+
 from uuid import UUID
 from pydantic import Field
+from app.models.enums import MembershipTier
 from .common import DefaultModel
 
 class UpdatePhoneRequest(DefaultModel):
@@ -33,6 +35,8 @@ class AddressResponse(DefaultModel):
     postal_code: str
     country: str
     is_default: bool = False
+    lat: float | None = None
+    lng: float | None = None
 
 class UserProfileResponse(DefaultModel):
     id: UUID
@@ -40,3 +44,12 @@ class UserProfileResponse(DefaultModel):
     full_name: str
     phone: str | None = None
     role: str
+
+
+class AddressLocationRequest(DefaultModel):
+    lat: float
+    lng: float
+
+
+class MembershipRequest(DefaultModel):
+    tier: MembershipTier

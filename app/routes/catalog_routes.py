@@ -68,3 +68,9 @@ def autocomplete():
     limit = safe_int(request.args, "limit", 10)
     payload = CatalogQueryService.autocomplete(query, limit)
     return jsonify(success_envelope(payload))
+
+
+@blueprint.get("/products/<uuid:product_id>/reviews")
+def product_reviews(product_id):
+    """Return an empty list until the review feed is available."""
+    return jsonify(success_envelope({"items": []}))

@@ -3,11 +3,13 @@
 from __future__ import annotations
 from uuid import UUID
 from ....schemas.profile import (
+    AddressLocationRequest,
     AddressRequest,
     AddressResponse,
     AddressUpdateRequest,
 )
 from . import query, write
+from . import location
 
 
 class AddressService:
@@ -37,3 +39,8 @@ class AddressService:
     def set_default_address(user_id: UUID, address_id: UUID) -> AddressResponse:
         """Set an address as the default."""
         return write.set_default_address(user_id, address_id)
+
+    @staticmethod
+    def update_location(user_id: UUID, address_id: UUID, data: AddressLocationRequest) -> AddressResponse:
+        """Update address GPS coordinates."""
+        return location.update_location(user_id, address_id, data)

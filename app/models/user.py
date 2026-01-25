@@ -22,6 +22,7 @@ class User(Base, TimestampMixin, SoftDeleteMixin):
         nullable=False,
         server_default=Role.CUSTOMER.value,
     )
+    membership_tier = Column(String(32), nullable=False, server_default="FREE")
     default_branch_id = Column(UUID(as_uuid=True), ForeignKey("branches.id"))
 
     addresses = relationship("Address", back_populates="user", cascade="all, delete-orphan")
@@ -32,3 +33,8 @@ class User(Base, TimestampMixin, SoftDeleteMixin):
     )
     carts = relationship("Cart", back_populates="user", cascade="all, delete-orphan")
     orders = relationship("Order", back_populates="user", cascade="all, delete-orphan")
+    wishlist_items = relationship(
+        "WishlistItem",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )

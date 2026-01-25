@@ -1,11 +1,13 @@
 import sys
-import pytest
 import uuid
 from pathlib import Path
 from datetime import time
 
 import pytest
-import sys
+
+
+pytest_plugins = ["tests.profile.profile_fixtures"]
+
 from flask_jwt_extended import create_access_token
 
 ROOT = Path(__file__).resolve().parents[1]

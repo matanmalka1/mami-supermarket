@@ -15,4 +15,6 @@ def address_to_response(address: Address) -> AddressResponse:
         postal_code=address.postal_code,
         country=address.country,
         is_default=address.is_default,
+        lat=address.latitude,
+        lng=address.longitude,
     )

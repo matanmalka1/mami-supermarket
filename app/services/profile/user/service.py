@@ -11,7 +11,8 @@ from ....schemas.profile import (
     UpdateProfileRequest,
     UserProfileResponse,
 )
-from ...audit_service import AuditService
+from app.models.enums import MembershipTier
+from app.services.audit_service import AuditService
 
 
 class ProfileService:
@@ -94,3 +95,28 @@ class ProfileService:
             raise DomainError("DATABASE_ERROR", "Could not update profile", details={"error": str(exc)})
         
         return ProfileService.get_user_profile(user_id)
+
+    @staticmethod
+    def update_membership(user_id: UUID, tier: MembershipTier) -> MembershipTier:
+        user = db.session.query(User).filter_by(id=user_id, is_active=True).first()
+        if not user:
+            raise DomainError("USER_NOT_FOUND", "User not found", status_code=404)
+
+        old_tier = user.membership_tier
+        user.membership_tier = tier.value
+
+        try:
+            db.session.commit()
+            AuditService.log_event(
+                entity_type="user",
+                action="UPDATE_MEMBERSHIP",
+                actor_user_id=user_id,
+                entity_id=user.id,
+                old_value={"membership_tier": old_tier},
+                new_value={"membership_tier": tier.value},
+            )
+        except IntegrityError as exc:
+            db.session.rollback()
+            raise DomainError("DATABASE_ERROR", "Could not update membership", details={"error": str(exc)})
+
+        return tier

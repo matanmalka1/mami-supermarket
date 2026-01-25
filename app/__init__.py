@@ -12,15 +12,16 @@ from .routes import (
     admin_settings_routes,
     admin_fleet_routes,
     auth_routes,
+    auth_otp_routes,
     branches_routes,
     cart_routes,
     catalog_routes,
     checkout_routes,
     health_routes,
+    orders_routes,
     profile_routes,
     stock_requests_routes,
     ops_routes,
-    orders_routes,
     audit_routes,
 )
 from app.middleware.cors import register_cors
@@ -58,14 +59,19 @@ def _register_extensions(app: Flask) -> None:
     limiter.init_app(app)
 
 def _register_blueprints(app: Flask) -> None:
+    from .routes import ops_actions_routes, store_routes
+
     app.register_blueprint(auth_routes.blueprint, url_prefix="/api/v1/auth")
+    app.register_blueprint(auth_otp_routes.blueprint, url_prefix="/api/v1/auth")
     app.register_blueprint(profile_routes.blueprint, url_prefix="/api/v1/me")
     app.register_blueprint(catalog_routes.blueprint, url_prefix="/api/v1/catalog")
+    app.register_blueprint(store_routes.blueprint, url_prefix="/api/v1/store")
     app.register_blueprint(health_routes.blueprint, url_prefix="/api/v1/health")
     app.register_blueprint(branches_routes.blueprint, url_prefix="/api/v1")
     app.register_blueprint(cart_routes.blueprint, url_prefix="/api/v1/cart")
     app.register_blueprint(checkout_routes.blueprint, url_prefix="/api/v1/checkout")
     app.register_blueprint(stock_requests_routes.blueprint, url_prefix="/api/v1/stock-requests")
+    app.register_blueprint(ops_actions_routes.blueprint, url_prefix="/api/v1/ops")
     app.register_blueprint(orders_routes.blueprint, url_prefix="/api/v1/orders")
     app.register_blueprint(ops_routes.blueprint, url_prefix="/api/v1/ops")
     app.register_blueprint(audit_routes.blueprint, url_prefix="/api/v1/admin/audit")
