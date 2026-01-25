@@ -56,3 +56,11 @@ def test_admin_analytics_revenue_shape(client, session, admin_token):
     data = resp.get_json()["data"]
     assert "labels" in data and "values" in data
     assert len(data["labels"]) == len(data["values"])
+
+def test_admin_analytics_revenue_empty_returns_arrays(client, session, admin_token):
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    resp = client.get("/api/v1/admin/analytics/revenue?range=30d", headers=headers)
+    assert resp.status_code == 200
+    data = resp.get_json()["data"]
+    assert isinstance(data.get("labels"), list)
+    assert isinstance(data.get("values"), list)

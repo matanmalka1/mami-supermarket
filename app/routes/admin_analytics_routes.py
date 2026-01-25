@@ -1,14 +1,23 @@
 """Admin analytics: revenue endpoint (sum of completed orders, grouped by day/month)."""
+from datetime import datetime, timedelta
+
+import sqlalchemy as sa
+
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
-from app.middleware.auth import require_role
-from app.models.enums import Role, OrderStatus
+
 from app.extensions import db
-import sqlalchemy as sa
-from datetime import datetime, timedelta
-from decimal import Decimal
+from app.middleware.auth import require_role
+from app.models.enums import OrderStatus, Role
 
 blueprint = Blueprint("admin_analytics", __name__)
+
+RevenueTable = sa.table(
+    "orders",
+    sa.column("created_at", sa.DateTime),
+    sa.column("total_amount", sa.Numeric(12, 2)),
+    sa.column("status", sa.String),
+)
 
 @blueprint.get("/revenue")
 @jwt_required()
@@ -31,23 +40,43 @@ def revenue():
 
     # Detect SQLite for test environment compatibility
     is_sqlite = hasattr(db, 'engine') and db.engine and db.engine.dialect.name == "sqlite"
+    created_at = RevenueTable.c.created_at
     if is_sqlite:
-        if gran == "month":
-            label_expr = sa.func.strftime('%Y-%m', sa.column('created_at'))
-        else:
-            label_expr = sa.func.strftime('%Y-%m-%d', sa.column('created_at'))
+        label_expr = (
+            sa.func.strftime('%Y-%m', created_at)
+            if gran == "month"
+            else sa.func.strftime('%Y-%m-%d', created_at)
+        )
     else:
         if gran == "month":
-            label_expr = sa.func.to_char(sa.func.date_trunc('month', sa.column('created_at')), 'YYYY-MM')
+            label_expr = sa.func.to_char(
+                sa.func.date_trunc('month', created_at),
+                'YYYY-MM',
+            )
         else:
-            label_expr = sa.func.to_char(sa.func.date_trunc('day', sa.column('created_at')), 'YYYY-MM-DD')
+            label_expr = sa.func.to_char(
+                sa.func.date_trunc('day', created_at),
+                'YYYY-MM-DD',
+            )
 
-    q = sa.select(
-        label_expr.label("label"),
-        sa.func.coalesce(sa.func.sum(sa.cast(sa.column('total_amount'), sa.Numeric(12,2))), 0).label("value")
-    ).select_from(sa.text('orders')).where(
-        sa.text("status = 'COMPLETED' AND created_at >= :start")
-    ).group_by(label_expr).order_by(label_expr)
+    q = (
+        sa.select(
+            label_expr.label("label"),
+            sa.func.coalesce(
+                sa.func.sum(sa.cast(RevenueTable.c.total_amount, sa.Numeric(12, 2))),
+                0,
+            ).label("value"),
+        )
+        .select_from(RevenueTable)
+    .where(
+        sa.and_(
+            RevenueTable.c.status == "COMPLETED",
+            RevenueTable.c.created_at >= sa.bindparam("start"),
+        ),
+    )
+        .group_by(label_expr)
+        .order_by(label_expr)
+    )
     result = db.session.execute(q, {"start": start}).fetchall()
     labels = [row.label for row in result]
     values = [float(row.value) for row in result]
