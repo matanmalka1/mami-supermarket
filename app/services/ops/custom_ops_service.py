@@ -12,18 +12,6 @@ def get_ops_performance(user_id):
     metrics["user_id"] = str(user_id)
     return metrics
 
-def get_ops_map(user_id):
-    # TODO: implement real map logic
-    return {
-        "map": {
-            "branches": [
-                {"id": "branch-1", "name": "Main Branch", "lat": 32.1, "lng": 34.8},
-                {"id": "branch-2", "name": "North Branch", "lat": 32.2, "lng": 34.9},
-            ],
-            "warehouse": {"id": "warehouse-1", "name": "Central Warehouse", "lat": 32.15, "lng": 34.85},
-        },
-        "user_id": str(user_id),
-    }
 
 def get_ops_alerts(user_id):
     now = datetime.utcnow()

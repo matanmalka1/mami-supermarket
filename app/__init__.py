@@ -10,7 +10,6 @@ from .routes import (
     admin_catalog_routes,
     admin_users_routes,
     admin_settings_routes,
-    admin_fleet_routes,
     auth_routes,
     auth_otp_routes,
     branches_routes,
@@ -79,7 +78,6 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(admin_catalog_routes.blueprint, url_prefix="/api/v1/admin")
     app.register_blueprint(admin_branches_routes.blueprint, url_prefix="/api/v1/admin")
     app.register_blueprint(admin_settings_routes.blueprint, url_prefix="/api/v1/admin")
-    app.register_blueprint(admin_fleet_routes.blueprint, url_prefix="/api/v1/admin")
     app.register_blueprint(admin_users_routes.blueprint, url_prefix="/api/v1/admin/users")
     app.register_blueprint(admin_analytics_routes.blueprint, url_prefix="/api/v1/admin/analytics")
     # Health endpoints should not be rate-limited.

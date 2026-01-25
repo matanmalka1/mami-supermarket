@@ -14,7 +14,6 @@ from app.services.ops_service import OpsOrderService
 from app.services.ops.custom_ops_service import (
     create_batch_for_ops,
     get_ops_performance,
-    get_ops_map,
     get_ops_alerts,
 )
 
@@ -111,15 +110,6 @@ def get_performance():
 def get_alerts():
     alerts = get_ops_alerts(current_user_id())
     return jsonify(success_envelope(alerts)), 200
-
-# Endpoint: GET /ops/map
-@blueprint.get("/map")
-@jwt_required()
-@require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
-def get_map():
-    user_id = current_user_id()
-    map_data = get_ops_map(user_id)
-    return jsonify(success_envelope(map_data)), 200
 
 
 @blueprint.patch("/orders/<uuid:order_id>/status")
