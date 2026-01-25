@@ -1,6 +1,6 @@
 """Authentication endpoints."""
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from app.middleware.error_handler import DomainError
@@ -85,7 +85,6 @@ def login():
 # Endpoint: POST /forgot-password
 @blueprint.post("/forgot-password")
 def forgot_password():
-    import uuid
     payload = request.get_json() or {}
     email = payload.get("email")
     if not email:
@@ -100,10 +99,10 @@ def forgot_password():
         )
         return jsonify(success_envelope("Password reset link sent")), 200
 
-    # יצירת טוקן איפוס אמיתי
-    import uuid
     reset_token = PasswordResetService.create_token(user.id)
-    # TODO: שליחת מייל בפועל עם הטוקן
+    response_body = {"message": "Password reset link sent"}
+    if current_app.config.get("ENV") == "development" or current_app.config.get("TESTING"):
+        response_body["reset_token"] = reset_token
 
     AuditService.log_event(
         entity_type="user_password_reset",
@@ -112,7 +111,7 @@ def forgot_password():
         entity_id=user.id,
         context={"email": email, "result": "SUCCESS", "reset_token": "***"},
     )
-    return jsonify(success_envelope("Password reset link sent")), 200
+    return jsonify(success_envelope(response_body)), 200
 
 # Endpoint: POST /auth/reset-password
 @blueprint.post("/reset-password")
@@ -124,7 +123,7 @@ def reset_password():
     # אימות טוקן
     PasswordResetService.verify_and_consume_token(payload.token, user.id)
     # עדכון סיסמה
-    AuthService.change_password(user.id, payload.new_password, payload.new_password)
+    AuthService.set_password(user.id, payload.new_password)
     AuditService.log_event(
         entity_type="user_password_reset",
         action="RESET_PASSWORD",

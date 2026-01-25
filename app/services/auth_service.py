@@ -67,6 +67,16 @@ class AuthService:
         session.commit()
 
     @staticmethod
+    def set_password(user_id: str, new_password: str) -> None:
+        session = db.session
+        user = session.get(User, user_id)
+        if not user:
+            raise DomainError("USER_NOT_FOUND", "User not found")
+        user.password_hash = hash_password(new_password)
+        session.add(user)
+        session.commit()
+
+    @staticmethod
     def build_auth_response(user: User) -> AuthResponse:
         access_expires = current_app.config.get("JWT_ACCESS_TOKEN_EXPIRES")
         expires_delta = access_expires if isinstance(access_expires, timedelta) else timedelta(minutes=15)
