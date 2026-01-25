@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Mapping
 
-from flask import jsonify
+from flask import jsonify, current_app, request
 from flask_jwt_extended.exceptions import JWTExtendedException
 from pydantic import ValidationError
 from werkzeug.exceptions import HTTPException
@@ -63,8 +63,16 @@ def register_error_handlers(app) -> None:
 
     @app.errorhandler(Exception)
     def handle_unhandled_error(error: Exception):
-        import traceback
-        app.logger.error(f"Unhandled error: {error}")
-        app.logger.error(traceback.format_exc())
+        request_id = (
+            request.headers.get("X-Request-Id")
+            or request.environ.get("HTTP_X_REQUEST_ID")
+            or "unknown"
+        )
+        current_app.logger.exception(
+            "Unhandled error during %s %s (request_id=%s)",
+            request.method,
+            request.path,
+            request_id,
+        )
         payload = error_envelope("INTERNAL_ERROR", "Unexpected error")
         return jsonify(payload), 500
