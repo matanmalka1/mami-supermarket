@@ -28,16 +28,16 @@
 13. [Audit & Security Philosophy](#audit--security-philosophy)
 14. [Development Guidelines & Conventions](#development-guidelines--conventions)
 15. [Production Recommendations](#production-recommendations)
-16. [API Samples](docs/api.md)
+16. [API Samples](docs/API_PAYLOADS.md)
 
 ## Overview
 
-Backend API for **Mami Supermarket** – modern online supermarket system supporting:
+Backend API for **Mami Supermarket** – a modern online supermarket system supporting:
 
 - Real per-branch inventory (including central warehouse)
 - Customer web shopping + cart
 - Delivery (weekly days + 2-hour windows) & branch pickup
-- Credit card tokenization payments
+- Credit card tokenization payments (no card data stored)
 - Employee picking workflow + missing items handling
 - Employee → Manager inventory update requests & approvals
 - Strong audit trail with old/new values (transaction-safe)
@@ -58,7 +58,7 @@ Backend API for **Mami Supermarket** – modern online supermarket system suppor
 
 | Layer             | Technology                            |
 | ----------------- | ------------------------------------- |
-| Language          | Python 3.11+                          |
+| Language          | Python 3.14+                          |
 | Web Framework     | Flask                                 |
 | ORM               | SQLAlchemy 2.x                        |
 | Migrations        | Alembic                               |
@@ -68,97 +68,31 @@ Backend API for **Mami Supermarket** – modern online supermarket system suppor
 | Database          | PostgreSQL 15+                        |
 | Production Server | Gunicorn + Uvicorn workers (optional) |
 
-## Project Structure (Actual)
+## Project Structure (2026)
 
 ```text
-server/
+mami-supermarket-backend/
 ├── alembic/                    # Database migrations
 │   ├── env.py
 │   ├── script.py.mako
-│   └── versions/
-│       ├── 0001_initial.py
-│       └── 0002_add_idempotency_keys.py
+│   └── versions/               # Migration scripts
 ├── app/
 │   ├── __init__.py             # App factory
 │   ├── config.py               # Configuration classes
 │   ├── constants.py            # App-wide constants
 │   ├── extensions.py           # db, jwt, etc.
-│   ├── models/                 # SQLAlchemy models (15 files)
-│   │   ├── address.py
-│   │   ├── audit.py
-│   │   ├── base.py
-│   │   ├── branch.py
-│   │   ├── cart.py
-│   │   ├── category.py
-│   │   ├── delivery_slot.py
-│   │   ├── enums.py
-│   │   ├── idempotency_key.py
-│   │   ├── inventory.py
-│   │   ├── order.py
-│   │   ├── payment_token.py
-│   │   ├── product.py
-│   │   ├── stock_request.py
-│   │   └── user.py
-│   ├── schemas/                # Pydantic DTOs (10 files)
-│   │   ├── audit.py
-│   │   ├── auth.py
-│   │   ├── branches.py
-│   │   ├── cart.py
-│   │   ├── catalog.py
-│   │   ├── checkout.py
-│   │   ├── common.py
-│   │   ├── ops.py
-│   │   ├── orders.py
-│   │   └── stock_requests.py
-│   ├── services/               # Business logic (12 files)
-│   │   ├── audit_service.py
-│   │   ├── auth_service.py
-│   │   ├── branch_service.py
-│   │   ├── cart_service.py
-│   │   ├── catalog_service.py
-│   │   ├── checkout_service.py
-│   │   ├── checkout_workflow_service.py
-│   │   ├── inventory_service.py
-│   │   ├── ops_service.py
-│   │   ├── order_service.py
-│   │   ├── payment_service.py
-│   │   └── stock_requests_service.py
-│   ├── routes/                 # Flask Blueprints (13 files)
-│   │   ├── admin_branches.py
-│   │   ├── admin_catalog.py
-│   │   ├── admin_utils.py
-│   │   ├── audit.py
-│   │   ├── auth.py
-│   │   ├── branches.py
-│   │   ├── cart.py
-│   │   ├── catalog.py
-│   │   ├── checkout.py
-│   │   ├── health.py
-│   │   ├── ops.py
-│   │   ├── orders.py
-│   │   └── stock_requests.py
 │   ├── middleware/             # Request/response middleware
-│   │   ├── auth.py             # JWT & role checks
-│   │   ├── error_handler.py    # Global error handling
-│   │   └── request_id.py       # Request ID tracking
+│   ├── models/                 # SQLAlchemy models
+│   ├── routes/                 # Flask Blueprints
+│   ├── schemas/                # Pydantic DTOs
+│   ├── services/               # Business logic
 │   └── utils/                  # Helpers
-│       ├── logging_config.py
-│       ├── request_utils.py
-│       ├── responses.py
-│       └── security.py
-├── docs/
-│   └── api.md                  # API documentation
 ├── scripts/
 │   ├── gunicorn.sh             # Production server script
-│   └── seed.py                 # Database seeding
-├── tests/
-│   ├── conftest.py             # Test fixtures
-│   └── test_phase12.py         # Test suite
-├── .env.example                # Environment template
-├── .gitignore
-├── .pre-commit-config.yaml
-├── .pylintrc
-├── .ruff_cache/
+│   ├── seed.py                 # Database seeding
+│   └── seed/                   # Seed data helpers
+├── tests/                      # Pytest test suites
+├── docs/                       # Documentation
 ├── agents.md                   # Project agents & rules
 ├── alembic.ini                 # Alembic configuration
 ├── pyproject.toml              # Project metadata & ruff config
@@ -167,7 +101,8 @@ server/
 ├── requirements.txt            # Python dependencies
 ├── run.py                      # Development server entry
 ├── TODO.md                     # Project tasks
-└── wsgi.py                     # Production WSGI entry
+├── wsgi.py                     # Production WSGI entry
+└── .env.example                # Environment template
 ```
 
 ## Main Features
@@ -211,12 +146,12 @@ server/
 
 ```bash
 # 1. Clone & enter
-git clone ...
-cd server
+git clone <repo-url>
+cd mami-supermarket-backend
 
-# 2. Create & activate virtualenv
-python3 -m venv venv
-source venv/bin/activate    # Windows: venv\Scripts\activate
+# 2. (Recommended) Create & activate virtualenv
+python3 -m venv .venv
+source .venv/bin/activate    # Windows: .venv\Scripts\activate
 
 # 3. Install dependencies
 pip install -r requirements.txt
@@ -224,11 +159,7 @@ pip install -r requirements.txt
 # 4. Copy example env
 cp .env.example .env
 
-# 5. Edit .env !! important !!
-# especially:
-# DATABASE_URL
-# JWT_SECRET_KEY
-# DELIVERY_SOURCE_BRANCH_ID
+# 5. Edit .env (see below for required fields)
 
 # 6. Initialize DB & run migrations
 alembic upgrade head
@@ -247,7 +178,6 @@ python run.py
 ```bash
 # Required
 DATABASE_URL=postgresql+psycopg://user:pass@localhost:5432/mami
-
 JWT_SECRET_KEY=super-long-random-secret-at-least-64-chars
 
 # Warehouse branch (must exist in DB!)
