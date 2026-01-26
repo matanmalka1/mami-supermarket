@@ -1,6 +1,7 @@
 from __future__ import annotations
-import sqlalchemy as sa
+
 from sqlalchemy.exc import IntegrityError
+
 from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import Category, Product

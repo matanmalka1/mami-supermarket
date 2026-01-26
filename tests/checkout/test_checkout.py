@@ -1,6 +1,6 @@
 from decimal import Decimal
 import pytest
-import sqlalchemy as sa
+from sqlalchemy import select
 
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -86,7 +86,7 @@ def test_payment_danger_zone_logged(session, test_app, users, product_with_inven
     with pytest.raises(RuntimeError):
         CheckoutService.confirm(payload, idempotency_key="danger-key")
     audit_rows = db.session.execute(
-        sa.select(Audit).where(Audit.action == "PAYMENT_CAPTURED_NOT_COMMITTED")
+        select(Audit).where(Audit.action == "PAYMENT_CAPTURED_NOT_COMMITTED")
     ).scalars().all()
     assert audit_rows, "Expected danger zone audit log when commit fails after payment"
 
@@ -188,6 +188,6 @@ def test_checkout_saves_payment_preferences(session, test_app, users):
     CheckoutService._maybe_save_default_payment_token(user.id, 1, save_as_default=True)
     db.session.commit()
     audit_rows = db.session.execute(
-        sa.select(Audit).where(Audit.entity_type == "payment_preferences")
+        select(Audit).where(Audit.entity_type == "payment_preferences")
     ).scalars().all()
     assert audit_rows

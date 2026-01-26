@@ -1,8 +1,10 @@
 """Admin user management routes."""
 
 from __future__ import annotations
+
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
+
 from app.middleware.auth import require_role
 from app.middleware.error_handler import DomainError
 from app.models.enums import Role
@@ -12,7 +14,6 @@ from app.utils.responses import success_envelope
 from app.utils.request_params import parse_int, parse_bool, parse_enum
 
 blueprint = Blueprint("admin_users", __name__)
-
 
 ## READ (List Users)
 @blueprint.get("")

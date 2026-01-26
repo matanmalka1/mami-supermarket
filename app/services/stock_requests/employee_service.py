@@ -1,5 +1,5 @@
 from __future__ import annotations
-import sqlalchemy as sa
+from sqlalchemy import select , func
 from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import Inventory, StockRequest
@@ -13,7 +13,7 @@ class StockRequestEmployeeService:
     @staticmethod
     def create_request(user_id: int, payload: StockRequestCreateRequest) -> StockRequestResponse:
         inventory = db.session.execute(
-            sa.select(Inventory)
+            select(Inventory)
             .where(Inventory.branch_id == payload.branch_id)
             .where(Inventory.product_id == payload.product_id)
         ).scalar_one_or_none()
@@ -46,14 +46,14 @@ class StockRequestEmployeeService:
     @staticmethod
     def list_my(user_id: int, limit: int, offset: int) -> tuple[list[StockRequestResponse], int]:
         stmt = (
-            sa.select(StockRequest)
+            select(StockRequest)
             .where(StockRequest.actor_user_id == user_id)
             .order_by(StockRequest.created_at.desc())
             .offset(offset)
             .limit(limit)
         )
         total = db.session.scalar(
-            sa.select(sa.func.count()).select_from(StockRequest).where(StockRequest.actor_user_id == user_id)
+            select(func.count()).select_from(StockRequest).where(StockRequest.actor_user_id == user_id)
         )
         rows = db.session.execute(stmt).scalars().all()
         return [to_response(row) for row in rows], total or 0

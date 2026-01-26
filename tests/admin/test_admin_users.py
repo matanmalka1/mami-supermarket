@@ -70,7 +70,7 @@ class TestGetUser:
             )
             assert response.status_code == 200
             data = response.get_json()["data"]
-            assert data["id"] == str(target_user.id)
+            assert data["id"] == target_user.id
             assert data["email"] == target_user.email
 
     def test_get_user_not_found(self, test_app, auth_header, create_user_with_role):

@@ -16,8 +16,8 @@ class DefaultModel(BaseModel):
     def _serialize_value(value):
         if isinstance(value, Decimal):
             return str(value)
-        if isinstance(value, int):
-            return str(value)
+        if isinstance(value, bool):
+            return value
         if isinstance(value, (time, datetime, date)):
             return value.isoformat()
         return value

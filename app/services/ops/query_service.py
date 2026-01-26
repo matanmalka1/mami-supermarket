@@ -1,6 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
-import sqlalchemy as sa
+from sqlalchemy import select ,func
 from sqlalchemy.orm import selectinload
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -19,7 +19,7 @@ class OpsOrderQueryService:
         limit: int,
         offset: int,
     ) -> tuple[list[OpsOrderResponse], int]:
-        base = sa.select(Order)
+        base = select(Order)
         stmt = base.options(
             selectinload(Order.items),
             selectinload(Order.user),
@@ -35,7 +35,7 @@ class OpsOrderQueryService:
             base = base.where(Order.created_at <= date_to)
             stmt = stmt.where(Order.created_at <= date_to)
         stmt = stmt.order_by(Order.created_at.asc())
-        total = db.session.scalar(sa.select(sa.func.count()).select_from(base.subquery()))
+        total = db.session.scalar(select(func.count()).select_from(base.subquery()))
         rows = db.session.execute(stmt.offset(offset).limit(limit)).scalars().all()
         responses = [to_ops_response(order) for order in rows]
         responses.sort(key=lambda o: o.urgency_rank)
@@ -49,7 +49,7 @@ class OpsOrderQueryService:
     @staticmethod
     def _load_order(order_id: int) -> Order:
         order = db.session.execute(
-            sa.select(Order)
+            select(Order)
             .where(Order.id == order_id)
             .options(
                 selectinload(Order.items),

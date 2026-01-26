@@ -60,4 +60,4 @@ class TestListDeliverySlots:
             assert response.status_code == 200
             data = response.get_json()["data"]
             for slot in data:
-                assert slot["branch_id"] == str(branch.id)
+                assert slot["branch_id"] == branch.id

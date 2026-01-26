@@ -19,7 +19,7 @@ class TestSetDefaultAddress:
             assert response.status_code == 200
             data = response.get_json()["data"]
             assert data["is_default"] is True
-            assert data["id"] == str(non_default_id)
+            assert data["id"] == non_default_id
 
             # Verify only one default exists
             list_response = client.get(
@@ -29,7 +29,7 @@ class TestSetDefaultAddress:
             all_addresses = list_response.get_json()["data"]
             defaults = [a for a in all_addresses if a["is_default"]]
             assert len(defaults) == 1
-            assert defaults[0]["id"] == str(non_default_id)
+            assert defaults[0]["id"] == non_default_id
 
     def test_set_default_address_not_found(self, test_app, customer_user, auth_header):
         """Should return 404 if address doesn't exist."""

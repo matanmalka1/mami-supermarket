@@ -1,5 +1,5 @@
 from __future__ import annotations
-import sqlalchemy as sa
+from sqlalchemy import select ,func
 from sqlalchemy.orm import selectinload
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -14,10 +14,10 @@ from .mappers import to_response
 class StockRequestReviewService:
     @staticmethod
     def list_admin(status: StockRequestStatus | None, limit: int, offset: int) -> tuple[list[StockRequestResponse], int]:
-        stmt = sa.select(StockRequest).order_by(StockRequest.created_at.desc())
+        stmt = select(StockRequest).order_by(StockRequest.created_at.desc())
         if status:
             stmt = stmt.where(StockRequest.status == status)
-        total = db.session.scalar(sa.select(sa.func.count()).select_from(stmt.subquery()))
+        total = db.session.scalar(select(func.count()).select_from(stmt.subquery()))
         rows = db.session.execute(stmt.offset(offset).limit(limit)).scalars().all()
         return [to_response(row) for row in rows], total or 0
 
@@ -25,7 +25,7 @@ class StockRequestReviewService:
     def get_request(request_id: int) -> StockRequestResponse:
         """Get detailed stock request information."""
         stock_request = db.session.execute(
-            sa.select(StockRequest)
+            select(StockRequest)
             .where(StockRequest.id == request_id)
             .options(selectinload(StockRequest.branch), selectinload(StockRequest.product))
         ).scalar_one_or_none()
@@ -45,7 +45,7 @@ class StockRequestReviewService:
     ) -> StockRequestResponse:
         session = db.session
         stock_request = session.execute(
-            sa.select(StockRequest)
+            select(StockRequest)
             .where(StockRequest.id == request_id)
             .options(selectinload(StockRequest.branch), selectinload(StockRequest.product))
             .with_for_update()

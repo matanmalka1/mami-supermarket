@@ -1,7 +1,7 @@
 """Admin analytics: revenue endpoint (sum of completed orders, grouped by day/month)."""
 from datetime import datetime, timedelta
-
 import sqlalchemy as sa
+from sqlalchemy import table ,column ,DateTime , Numeric ,Enum  ,func ,cast, String ,select 
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
@@ -12,11 +12,11 @@ from app.models.enums import OrderStatus, Role
 
 blueprint = Blueprint("admin_analytics", __name__)
 
-RevenueTable = sa.table(
+RevenueTable = table(
     "orders",
-    sa.column("created_at", sa.DateTime),
-    sa.column("total_amount", sa.Numeric(12, 2)),
-    sa.column("status", sa.Enum(OrderStatus, name="order_status")),
+    column("created_at", DateTime),
+    column("total_amount", Numeric(12, 2)),
+    column("status", Enum(OrderStatus, name="order_status")),
 )
 
 @blueprint.get("/revenue")
@@ -43,28 +43,28 @@ def revenue():
     created_at = RevenueTable.c.created_at
     if is_sqlite:
         label_expr = (
-            sa.func.strftime('%Y-%m', created_at)
+            func.strftime('%Y-%m', created_at)
             if gran == "month"
-            else sa.func.strftime('%Y-%m-%d', created_at)
+            else func.strftime('%Y-%m-%d', created_at)
         )
     else:
         if gran == "month":
-            label_expr = sa.func.to_char(
-                sa.func.date_trunc('month', created_at),
+            label_expr = func.to_char(
+                func.date_trunc('month', created_at),
                 'YYYY-MM',
             )
         else:
-            label_expr = sa.func.to_char(
-                sa.func.date_trunc('day', created_at),
+            label_expr = func.to_char(
+                func.date_trunc('day', created_at),
                 'YYYY-MM-DD',
             )
 
-    status_filter = sa.cast(RevenueTable.c.status, sa.String) == OrderStatus.DELIVERED.value
+    status_filter = cast(RevenueTable.c.status, String) == OrderStatus.DELIVERED.value
     q = (
-        sa.select(
+        select(
             label_expr.label("label"),
-            sa.func.coalesce(
-                sa.func.sum(sa.cast(RevenueTable.c.total_amount, sa.Numeric(12, 2))),
+            func.coalesce(
+                func.sum(cast(RevenueTable.c.total_amount, sa.Numeric(12, 2))),
                 0,
             ).label("value"),
         )

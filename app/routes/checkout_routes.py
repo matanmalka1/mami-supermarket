@@ -34,6 +34,5 @@ def confirm():
     payload = _parse(CheckoutConfirmRequest, request.get_json())
     result, is_new = CheckoutService.confirm(payload, idempotency_key)
     
-    # Return 201 for new orders, 200 for cached (idempotent) responses
     status_code = 201 if is_new else 200
     return jsonify(success_envelope(result)), status_code

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import datetime, timedelta
 
-import sqlalchemy as sa
+from sqlalchemy import select ,func ,distinct
 from app.extensions import db
 from app.models import Audit, Order, OrderItem
 from app.models.enums import OrderStatus, PickedStatus
@@ -16,10 +16,10 @@ class OpsPerformanceService:
     def compute_metrics() -> dict[str, float | int]:
         session = db.session
         total_items = session.scalar(
-            sa.select(sa.func.count()).select_from(OrderItem),
+            select(func.count()).select_from(OrderItem),
         ) or 0
         picked_items = session.scalar(
-            sa.select(sa.func.count())
+            select(func.count())
             .select_from(OrderItem)
             .where(OrderItem.picked_status == PickedStatus.PICKED),
         ) or 0
@@ -29,19 +29,19 @@ class OpsPerformanceService:
 
         active_statuses = [OrderStatus.CREATED, OrderStatus.IN_PROGRESS]
         active_orders = session.scalar(
-            sa.select(sa.func.count()).select_from(Order).where(
+            select(func.count()).select_from(Order).where(
                 Order.status.in_(active_statuses),
             ),
         ) or 0
         total_orders = session.scalar(
-            sa.select(sa.func.count()).select_from(Order),
+            select(func.count()).select_from(Order),
         ) or 0
 
         window_start = datetime.utcnow() - timedelta(
             minutes=OpsPerformanceService.RECENT_PICKER_WINDOW_MINUTES,
         )
         live_picker_count = session.scalar(
-            sa.select(sa.func.count(sa.distinct(Audit.actor_user_id)))
+            select(func.count(distinct(Audit.actor_user_id)))
             .where(
                 Audit.entity_type == "order_item",
                 Audit.action == "UPDATE_PICK_STATUS",

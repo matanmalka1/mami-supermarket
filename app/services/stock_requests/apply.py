@@ -1,5 +1,5 @@
 from __future__ import annotations
-import sqlalchemy as sa
+from sqlalchemy import select
 from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import Inventory
@@ -16,7 +16,7 @@ def apply_inventory_change(
 ) -> None:
     session = db.session
     inventory = session.execute(
-        sa.select(Inventory)
+        select(Inventory)
         .where(Inventory.branch_id == branch_id)
         .where(Inventory.product_id == product_id)
         .with_for_update()

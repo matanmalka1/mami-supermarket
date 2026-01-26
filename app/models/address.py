@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sqlalchemy as sa
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
@@ -17,6 +18,6 @@ class Address(Base, TimestampMixin):
     postal_code = Column(String(16), nullable=False)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
-    is_default = Column(Boolean, nullable=False, server_default="false")
+    is_default = Column(Boolean, nullable=False, server_default=sa.text("false"))
 
     user = relationship("User", back_populates="addresses")

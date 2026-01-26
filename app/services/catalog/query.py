@@ -1,5 +1,5 @@
 from __future__ import annotations
-import sqlalchemy as sa
+from sqlalchemy import select , func
 from sqlalchemy.orm import selectinload
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -11,9 +11,9 @@ from .mappers import map_products, matches_stock, to_category_response, to_produ
 class CatalogQueryService:
     @staticmethod
     def list_categories(limit: int, offset: int) -> tuple[list[CategoryResponse], int]:
-        stmt = sa.select(Category).where(Category.is_active.is_(True)).offset(offset).limit(limit)
+        stmt = select(Category).where(Category.is_active.is_(True)).offset(offset).limit(limit)
         categories = db.session.execute(stmt).scalars().all()
-        total = db.session.scalar(sa.select(sa.func.count()).select_from(Category).where(Category.is_active.is_(True)))
+        total = db.session.scalar(select(func.count()).select_from(Category).where(Category.is_active.is_(True)))
         return ([to_category_response(c) for c in categories], total or 0)
 
     @staticmethod
@@ -24,7 +24,7 @@ class CatalogQueryService:
         offset: int,
     ) -> tuple[list[ProductResponse], int]:
         stmt = (
-            sa.select(Product)
+            select(Product)
             .where(Product.category_id == category_id)
             .where(Product.is_active.is_(True))
             .options(selectinload(Product.inventory).selectinload(Inventory.branch))
@@ -33,7 +33,7 @@ class CatalogQueryService:
         )
         products = db.session.execute(stmt).scalars().all()
         total = db.session.scalar(
-            sa.select(sa.func.count())
+            select(func.count())
             .select_from(Product)
             .where(Product.category_id == category_id)
             .where(Product.is_active.is_(True))
@@ -42,7 +42,7 @@ class CatalogQueryService:
 
     @staticmethod
     def get_product(product_id: int, branch_id: int | None) -> ProductResponse:
-        stmt = sa.select(Product).where(Product.id == product_id).options(selectinload(Product.inventory).selectinload(Inventory.branch))
+        stmt = select(Product).where(Product.id == product_id).options(selectinload(Product.inventory).selectinload(Inventory.branch))
         product = db.session.execute(stmt).scalar_one_or_none()
         if not product or not product.is_active:
             raise DomainError("NOT_FOUND", "Product not found", status_code=404)
@@ -61,7 +61,7 @@ class CatalogQueryService:
         organic_only: bool | None = None,
         sort: str | None = None,
     ) -> tuple[list[ProductResponse], int]:
-        base = sa.select(Product).where(Product.is_active.is_(True))
+        base = select(Product).where(Product.is_active.is_(True))
         if query:
             base = base.where(Product.name.ilike(f"%{query}%"))
         if category_id:
@@ -92,7 +92,7 @@ class CatalogQueryService:
             total = len(products)
         else:
             # Count total (ignoring offset/limit)
-            count_base = sa.select(sa.func.count()).select_from(Product).where(Product.is_active.is_(True))
+            count_base = select(func.count()).select_from(Product).where(Product.is_active.is_(True))
             if query:
                 count_base = count_base.where(Product.name.ilike(f"%{query}%"))
             if category_id:
@@ -109,7 +109,7 @@ class CatalogQueryService:
     @staticmethod
     def featured_products(limit: int, branch_id: int | None) -> list[ProductResponse]:
         stmt = (
-            sa.select(Product)
+            select(Product)
             .where(Product.is_active.is_(True))
             .order_by(Product.updated_at.desc(), Product.id.desc())
             .limit(limit)
@@ -120,7 +120,7 @@ class CatalogQueryService:
 
     @staticmethod
     def autocomplete(query: str | None, limit: int) -> AutocompleteResponse:
-        stmt = sa.select(Product).where(Product.is_active.is_(True))
+        stmt = select(Product).where(Product.is_active.is_(True))
         if query:
             stmt = stmt.where(Product.name.ilike(f"%{query}%"))
         products = db.session.execute(stmt.limit(limit)).scalars().all()

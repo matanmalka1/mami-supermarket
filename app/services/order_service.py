@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-import sqlalchemy as sa
+from sqlalchemy import select ,func
 from sqlalchemy.orm import selectinload
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -16,7 +16,7 @@ class OrderService:
     @staticmethod
     def list_orders(user_id: int, limit: int, offset: int) -> tuple[list[OrderResponse], int]:
         stmt = (
-            sa.select(Order)
+            select(Order)
             .where(Order.user_id == user_id)
             .options(selectinload(Order.items))
             .order_by(Order.created_at.desc())
@@ -25,7 +25,7 @@ class OrderService:
         )
         orders = db.session.execute(stmt).scalars().all()
         total = db.session.scalar(
-            sa.select(sa.func.count()).select_from(Order).where(Order.user_id == user_id)
+            select(func.count()).select_from(Order).where(Order.user_id == user_id)
         )
         return [OrderService._to_response(order) for order in orders], total or 0
 
@@ -40,7 +40,7 @@ class OrderService:
     def cancel_order(order_id: int, user_id: int) -> CancelOrderResponse:
         session = db.session
         order = session.execute(
-            sa.select(Order).where(Order.id == order_id).with_for_update()
+            select(Order).where(Order.id == order_id).with_for_update()
         ).scalar_one_or_none()
         if not order or order.user_id != user_id:
             raise DomainError("NOT_FOUND", "Order not found", status_code=404)
@@ -69,7 +69,7 @@ class OrderService:
     @staticmethod
     def _load_order(order_id: int) -> Order:
         order = db.session.execute(
-            sa.select(Order).where(Order.id == order_id).options(selectinload(Order.items))
+            select(Order).where(Order.id == order_id).options(selectinload(Order.items))
         ).scalar_one_or_none()
         if not order:
             raise DomainError("NOT_FOUND", "Order not found", status_code=404)

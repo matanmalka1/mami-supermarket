@@ -1,14 +1,15 @@
 from datetime import datetime
-from uuid import uuid4
 
 from app.services.ops.performance_service import OpsPerformanceService
 
 def create_batch_for_ops(user_id, batch_payload):
-    return {"id": str(uuid4()), "created_by": str(user_id), "payload": batch_payload}
+    created_at = datetime.utcnow()
+    batch_id = int(created_at.timestamp() * 1_000)
+    return {"id": batch_id, "created_by": user_id, "payload": batch_payload}
 
 def get_ops_performance(user_id):
     metrics = OpsPerformanceService.compute_metrics()
-    metrics["user_id"] = str(user_id)
+    metrics["user_id"] = user_id
     return metrics
 
 

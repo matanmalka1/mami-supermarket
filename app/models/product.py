@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import Column, ForeignKey, Index, Numeric, String, Text, Integer
-import sqlalchemy as sa
+from sqlalchemy import Column, ForeignKey, Index, Numeric, String, text, Integer, JSON, Boolean, Text
 from sqlalchemy.orm import relationship
 from .base import Base, SoftDeleteMixin, TimestampMixin
 
@@ -19,8 +18,8 @@ class Product(Base, TimestampMixin, SoftDeleteMixin):
     price = Column(Numeric(12, 2), nullable=False)
     old_price = Column(Numeric(12, 2), nullable=True)
     unit = Column(String(24), nullable=True)
-    nutritional_info = Column(sa.JSON, nullable=True)
-    is_organic = Column(sa.Boolean, nullable=False, server_default='false')
+    nutritional_info = Column(JSON, nullable=True)
+    is_organic = Column(Boolean, nullable=False, server_default=text('false'))
     description = Column(Text, nullable=True)
     bin_location = Column(String(64), nullable=True)
     image_url = Column(String(256), nullable=True)

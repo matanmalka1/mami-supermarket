@@ -3,6 +3,7 @@
 from __future__ import annotations
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
+
 from app.middleware.auth import require_role
 from app.middleware.error_handler import DomainError
 from app.models.enums import Role, StockRequestStatus

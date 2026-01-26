@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Sequence
-import sqlalchemy as sa
+from sqlalchemy import select
 from app.extensions import db
 from app.models import Category, Inventory, Product
 from app.schemas.catalog import CategoryResponse, ProductResponse
@@ -19,7 +19,7 @@ def to_category_response(category: Category) -> CategoryResponse:
 def load_inventory(product: Product) -> None:
     if not product.inventory:
         product.inventory = (
-            db.session.execute(sa.select(Inventory).where(Inventory.product_id == product.id)).scalars().all()
+            db.session.execute(select(Inventory).where(Inventory.product_id == product.id)).scalars().all()
         )
 
 

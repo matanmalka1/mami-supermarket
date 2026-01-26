@@ -1,5 +1,5 @@
 import pytest
-import sqlalchemy as sa
+from sqlalchemy import select ,func
 
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -43,5 +43,5 @@ def test_no_audit_on_failed_review(session, users):
             rejection_reason=None,
             actor_id=user.id,
         )
-    audits = db.session.execute(sa.select(sa.func.count()).select_from(Audit)).scalar()
+    audits = db.session.execute(select(func.count()).select_from(Audit)).scalar()
     assert audits == 0

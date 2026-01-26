@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import sqlalchemy as sa
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, JSON, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, JSON, String ,func
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -20,6 +19,6 @@ class Audit(Base):
 
     actor_user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=True)
 
-    created_at = Column(DateTime, nullable=False, server_default=sa.func.now())
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
 
     actor = relationship("User")

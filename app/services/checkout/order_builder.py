@@ -1,6 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
-from uuid import uuid4
+from secrets import token_hex
 from app.extensions import db
 from app.models import Order, OrderDeliveryDetails, OrderItem, OrderPickupDetails
 from app.models.enums import FulfillmentType, OrderStatus
@@ -11,7 +11,7 @@ from app.services.audit_service import AuditService
 class CheckoutOrderBuilder:
     @staticmethod
     def order_number() -> str:
-        return f"ORD-{int(datetime.utcnow().timestamp())}-{uuid4().hex[:6].upper()}"
+        return f"ORD-{int(datetime.utcnow().timestamp())}-{token_hex(3).upper()}"
 
     @staticmethod
     def create_order(cart, payload: CheckoutConfirmRequest, branch_id: int, total_amount) -> Order:
@@ -26,7 +26,7 @@ class CheckoutOrderBuilder:
         db.session.add(order)
         for item in cart.items:
             order_item = OrderItem(
-                order_id=order.id,
+                order=order,
                 product_id=item.product_id,
                 name=item.product.name,
                 sku=item.product.sku,
@@ -40,7 +40,7 @@ class CheckoutOrderBuilder:
     def add_fulfillment_details(order: Order, payload: CheckoutConfirmRequest, branch_id: int) -> None:
         if payload.fulfillment_type == FulfillmentType.DELIVERY:
             delivery = OrderDeliveryDetails(
-                order_id=order.id,
+                order=order,
                 delivery_slot_id=payload.delivery_slot_id,
                 address=payload.address or "",
                 slot_start=None,
@@ -50,7 +50,7 @@ class CheckoutOrderBuilder:
             return
         now = datetime.utcnow()
         pickup = OrderPickupDetails(
-            order_id=order.id,
+            order=order,
             branch_id=branch_id,
             pickup_window_start=now,
             pickup_window_end=now,

@@ -1,5 +1,5 @@
 from __future__ import annotations
-import sqlalchemy as sa
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -21,7 +21,7 @@ class OpsOrderUpdateService:
     ) -> OrderResponse:
         session = db.session
         order = session.execute(
-            sa.select(Order)
+            select(Order)
             .where(Order.id == order_id)
             .options(selectinload(Order.items))
             .with_for_update()
@@ -58,7 +58,7 @@ class OpsOrderUpdateService:
     ) -> OrderResponse:
         session = db.session
         order = session.execute(
-            sa.select(Order)
+            select(Order)
             .where(Order.id == order_id)
             .options(selectinload(Order.items))
             .with_for_update()

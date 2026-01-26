@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import sqlalchemy as sa
+from sqlalchemy import select , func 
 from datetime import datetime
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm import Session
@@ -56,7 +56,7 @@ class AuditService:
 class AuditQueryService:
     @staticmethod
     def list_logs(filters: dict, limit: int, offset: int) -> tuple[list[dict], int]:
-        stmt = sa.select(Audit).options(selectinload(Audit.actor)).order_by(Audit.created_at.desc())
+        stmt = select(Audit).options(selectinload(Audit.actor)).order_by(Audit.created_at.desc())
         if filters.get("entity_type"):
             stmt = stmt.where(Audit.entity_type == filters["entity_type"])
         if filters.get("action"):
@@ -67,7 +67,7 @@ class AuditQueryService:
             stmt = stmt.where(Audit.created_at >= filters["date_from"])
         if filters.get("date_to"):
             stmt = stmt.where(Audit.created_at <= filters["date_to"])
-        total = db.session.scalar(sa.select(sa.func.count()).select_from(stmt.subquery()))
+        total = db.session.scalar(select(func.count()).select_from(stmt.subquery()))
         rows = db.session.execute(stmt.offset(offset).limit(limit)).scalars().all()
         return [AuditQueryService._to_dict(row) for row in rows], total or 0
 
