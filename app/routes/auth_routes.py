@@ -7,9 +7,9 @@ from urllib.parse import quote
 from app.middleware.error_handler import DomainError
 from app.extensions import limiter
 from app.services.audit_service import AuditService
+from app.utils.request_utils import parse_json_or_400
 from app.utils.responses import success_envelope
 from app.schemas.auth import (
-    AuthResponse,
     ChangePasswordRequest,
     LoginRequest,
     RegisterRequest,
@@ -22,15 +22,6 @@ from app.services.email_service import send_password_reset_email
 
 blueprint = Blueprint("auth", __name__)
 
-
-def _parse_payload(request_body: dict | None) -> dict:
-    if not request_body:
-        raise DomainError("BAD_REQUEST", "Missing JSON body", status_code=400)
-    return request_body
-
-
-def _build_response(payload: AuthResponse):
-    return jsonify(success_envelope(payload.model_dump()))
 
 ## READ (Current User)
 @blueprint.get("/me")
@@ -55,17 +46,17 @@ def me():
 ## CREATE (Register)
 @blueprint.post("/register")
 def register():
-    payload = RegisterRequest.model_validate(_parse_payload(request.get_json()))
+    payload = RegisterRequest.model_validate(parse_json_or_400())
     user = AuthService.register(payload)
     response = AuthService.build_auth_response(user)
-    return _build_response(response), 201
+    return jsonify(success_envelope(response.model_dump())), 201
 
 
 ## CREATE (Login)
 @blueprint.post("/login")
 @limiter.limit("5 per minute")
 def login():
-    payload = LoginRequest.model_validate(_parse_payload(request.get_json()))
+    payload = LoginRequest.model_validate(parse_json_or_400())
     try:
         user = AuthService.authenticate(payload.email, payload.password)
     except DomainError as exc:
@@ -85,7 +76,7 @@ def login():
         entity_id=user.id,
     )
     response = AuthService.build_auth_response(user)
-    return _build_response(response)
+    return jsonify(success_envelope(response.model_dump()))
 
 # Endpoint: POST /forgot-password
 ## CREATE (Forgot Password)
@@ -131,9 +122,8 @@ def reset_password():
     user = AuthService.get_user_by_email(payload.email)
     if not user:
         raise DomainError("USER_NOT_FOUND", "User not found", status_code=404)
-    # אימות טוקן
+    
     PasswordResetService.verify_and_consume_token(payload.token, user.id)
-    # עדכון סיסמה
     AuthService.set_password(user.id, payload.new_password)
     AuditService.log_event(
         entity_type="user_password_reset",
@@ -148,7 +138,7 @@ def reset_password():
 @blueprint.post("/change-password")
 @jwt_required()
 def change_password():
-    payload = ChangePasswordRequest.model_validate(_parse_payload(request.get_json()))
+    payload = ChangePasswordRequest.model_validate(parse_json_or_400())
     user_id = get_jwt_identity()
     AuthService.change_password(user_id, payload.current_password, payload.new_password)
     return jsonify(success_envelope({"message": "Password updated"}))
