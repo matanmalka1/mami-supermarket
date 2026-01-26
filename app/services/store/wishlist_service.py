@@ -18,7 +18,7 @@ class WishlistService:
         )
         return [
             {
-                "product_id": str(item.product_id),
+                "product_id": item.product_id,
                 "created_at": item.created_at.isoformat(),
             }
             for item in items
@@ -36,14 +36,14 @@ class WishlistService:
         )
         if existing:
             return {
-                "product_id": str(existing.product_id),
+                "product_id": existing.product_id,
                 "created_at": existing.created_at.isoformat(),
             }
         item = WishlistItem(user_id=user_id, product_id=product_id)
         db.session.add(item)
         db.session.commit()
         return {
-            "product_id": str(item.product_id),
+            "product_id": item.product_id,
             "created_at": item.created_at.isoformat(),
         }
 

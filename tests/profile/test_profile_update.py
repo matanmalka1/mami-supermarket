@@ -14,7 +14,7 @@ class TestUpdatePhone:
             assert response.status_code == 200
             data = response.get_json()["data"]
             assert data["phone"] == "9876543210"
-            assert data["id"] == str(customer_user.id)
+            assert data["id"] == customer_user.id
 
     def test_update_phone_missing_field(self, test_app, customer_user, auth_header):
         """Should fail if phone field is missing."""

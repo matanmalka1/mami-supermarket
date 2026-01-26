@@ -53,7 +53,7 @@ class TestCreateAddress:
             assert data["address_line"] == "789 New St"
             assert data["city"] == "Haifa"
             assert data["is_default"] is False
-            assert data["user_id"] == str(customer_user.id)
+            assert data["user_id"] == customer_user.id
 
     def test_create_default_address(self, test_app, customer_with_addresses, auth_header):
         """Should create default address and unset previous default."""

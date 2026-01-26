@@ -31,12 +31,12 @@ def test_store_wishlist_add_list_remove(client, session, customer_user, auth_hea
         "/api/v1/store/wishlist", json={"product_id": str(product.id)}, headers=headers
     )
     assert add_resp.status_code == 200
-    assert add_resp.get_json()["data"]["product_id"] == str(product.id)
+    assert add_resp.get_json()["data"]["product_id"] == product.id
 
     list_resp = client.get("/api/v1/store/wishlist", headers=headers)
     items = list_resp.get_json()["data"]["items"]
     assert len(items) == 1
-    assert items[0]["product_id"] == str(product.id)
+    assert items[0]["product_id"] == product.id
 
     remove_resp = client.delete(
         f"/api/v1/store/wishlist/{product.id}", headers=headers
