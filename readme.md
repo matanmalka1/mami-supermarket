@@ -183,7 +183,7 @@ DATABASE_URL=postgresql+psycopg://user:pass@localhost:5432/mami
 JWT_SECRET_KEY=super-long-random-secret-at-least-64-chars
 
 # Warehouse branch (must exist in DB!)
-DELIVERY_SOURCE_BRANCH_ID=uuid-or-int-of-warehouse
+DELIVERY_SOURCE_BRANCH_ID=id-or-int-of-warehouse
 
 # Money rules
 DELIVERY_MIN_TOTAL=150
