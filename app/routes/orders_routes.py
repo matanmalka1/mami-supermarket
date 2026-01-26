@@ -10,6 +10,7 @@ from app.utils.responses import pagination_envelope, success_envelope
 
 blueprint = Blueprint("orders", __name__)
 
+## READ (List Orders)
 @blueprint.get("")
 @jwt_required()
 def list_orders():
@@ -18,6 +19,7 @@ def list_orders():
     orders, total = OrderService.list_orders(user_id, limit, offset)
     return jsonify(success_envelope(orders, pagination_envelope(total, limit, offset)))
 
+## READ (Get Order)
 @blueprint.get("/<uuid:order_id>")
 @jwt_required()
 def get_order(order_id: UUID):
@@ -25,6 +27,7 @@ def get_order(order_id: UUID):
     order = OrderService.get_order(order_id, user_id)
     return jsonify(success_envelope(order))
 
+## UPDATE (Cancel Order)
 @blueprint.post("/<uuid:order_id>/cancel")
 @jwt_required()
 def cancel_order(order_id: UUID):

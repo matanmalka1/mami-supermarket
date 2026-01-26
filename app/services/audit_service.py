@@ -1,9 +1,11 @@
 from __future__ import annotations
+
+import sqlalchemy as sa
 from datetime import datetime
 from uuid import UUID, uuid4
-import sqlalchemy as sa
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm import Session
+
 from ..extensions import db
 from ..models import Audit
 

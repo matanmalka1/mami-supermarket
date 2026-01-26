@@ -37,6 +37,7 @@ def _parse_filters() -> tuple[OrderStatus | None, datetime | None, datetime | No
     return status, parse_iso_date(date_from), parse_iso_date(date_to), limit, offset
 
 
+## READ (List Orders)
 @blueprint.get("/orders")
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
@@ -46,6 +47,7 @@ def list_orders():
     return jsonify(success_envelope(orders, pagination_envelope(total, limit, offset)))
 
 
+## READ (Get Order)
 @blueprint.get("/orders/<uuid:order_id>")
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
@@ -54,6 +56,7 @@ def get_order(order_id: UUID):
     return jsonify(success_envelope(order))
 
 
+## UPDATE (Picked Status)
 @blueprint.patch("/orders/<uuid:order_id>/items/<uuid:item_id>/picked-status")
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
@@ -63,6 +66,7 @@ def update_picked_status(order_id: UUID, item_id: UUID):
     return jsonify(success_envelope(order))
 
 # Endpoint: POST /ops/batches
+## CREATE (Batch)
 @blueprint.post("/batches")
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
@@ -74,6 +78,7 @@ def create_batch():
     return jsonify(success_envelope(batch_data)), 201
 
 # Endpoint: GET /api/v1/ops/stock-requests
+## READ (Stock Requests)
 @blueprint.get("/stock-requests")
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
@@ -86,6 +91,7 @@ def list_ops_stock_requests():
     return jsonify(success_envelope(rows, pagination_envelope(total, limit, offset)))
 
 # Endpoint: POST /api/v1/ops/stock-requests
+## CREATE (Stock Request)
 @blueprint.post("/stock-requests")
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
@@ -95,6 +101,7 @@ def create_ops_stock_request():
     return jsonify(success_envelope(result)), 201
 
 # Endpoint: GET /ops/performance
+## READ (Performance)
 @blueprint.get("/performance")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -104,6 +111,7 @@ def get_performance():
     return jsonify(success_envelope(performance_data)), 200
 
 # Endpoint: GET /ops/alerts
+## READ (Alerts)
 @blueprint.get("/alerts")
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
@@ -112,6 +120,7 @@ def get_alerts():
     return jsonify(success_envelope(alerts)), 200
 
 
+## UPDATE (Order Status)
 @blueprint.patch("/orders/<uuid:order_id>/status")
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)

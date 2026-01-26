@@ -20,6 +20,7 @@ from app.utils.responses import success_envelope
 blueprint = Blueprint("profile", __name__)
 
 
+## UPDATE (Phone)
 @blueprint.patch("/phone")
 @jwt_required()
 def update_phone():
@@ -30,6 +31,7 @@ def update_phone():
     return jsonify(success_envelope(profile.model_dump()))
 
 
+## UPDATE (Profile)
 @blueprint.patch("")
 @jwt_required()
 def update_profile():
@@ -40,6 +42,7 @@ def update_profile():
     return jsonify(success_envelope(profile.model_dump()))
 
 # Endpoint: GET /me ("" אמיתי)
+## READ (Profile)
 @blueprint.get("")
 @jwt_required()
 def get_profile():
@@ -50,6 +53,7 @@ def get_profile():
     return jsonify(success_envelope(profile.model_dump())), 200
 
 
+## READ (Addresses)
 @blueprint.get("/addresses")
 @jwt_required()
 def list_addresses():
@@ -59,6 +63,7 @@ def list_addresses():
     return jsonify(success_envelope([addr.model_dump() for addr in addresses]))
 
 
+## CREATE (Address)
 @blueprint.post("/addresses")
 @jwt_required()
 def create_address():
@@ -69,6 +74,7 @@ def create_address():
     return jsonify(success_envelope(address.model_dump())), 201
 
 
+## UPDATE (Address)
 @blueprint.put("/addresses/<uuid:address_id>")
 @jwt_required()
 def update_address(address_id: UUID):
@@ -79,6 +85,7 @@ def update_address(address_id: UUID):
     return jsonify(success_envelope(address.model_dump()))
 
 
+## UPDATE (Address Location)
 @blueprint.patch("/addresses/<uuid:address_id>/location")
 @jwt_required()
 def update_address_location(address_id: UUID):
@@ -89,6 +96,7 @@ def update_address_location(address_id: UUID):
     return jsonify(success_envelope(address.model_dump()))
 
 
+## DELETE (Address)
 @blueprint.delete("/addresses/<uuid:address_id>")
 @jwt_required()
 def delete_address(address_id: UUID):
@@ -98,6 +106,7 @@ def delete_address(address_id: UUID):
     return jsonify(success_envelope(result))
 
 
+## UPDATE (Default Address)
 @blueprint.patch("/addresses/<uuid:address_id>/default")
 @jwt_required()
 def set_default_address(address_id: UUID):
@@ -107,6 +116,7 @@ def set_default_address(address_id: UUID):
     return jsonify(success_envelope(address.model_dump()))
 
 
+## UPDATE (Membership)
 @blueprint.post("/membership")
 @jwt_required()
 def set_membership():

@@ -13,6 +13,7 @@ from app.utils.responses import success_envelope
 blueprint = Blueprint("branches", __name__)
 
 
+## READ (Branches)
 @blueprint.get("/branches")
 def list_branches():
     limit = safe_int(request.args, "limit", 50)
@@ -21,6 +22,7 @@ def list_branches():
     return jsonify(success_envelope(branches, pagination={"total": total, "limit": limit, "offset": offset}))
 
 
+## READ (Delivery Slots)
 @blueprint.get("/delivery-slots")
 def list_delivery_slots():
     day = optional_int(request.args, "dayOfWeek")

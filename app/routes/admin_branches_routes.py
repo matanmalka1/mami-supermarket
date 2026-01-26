@@ -3,20 +3,23 @@ from uuid import UUID
 from flask import Blueprint, jsonify, request
 from app.middleware.auth import require_role
 from flask_jwt_extended import jwt_required
+
+from app.services.inventory_service import InventoryService
+from app.services.branch_service import BranchService
+from app.utils.request_params import optional_uuid, safe_int, toggle_flag
+from app.utils.responses import success_envelope
+from app.services.inventory_bulk_service import handle_bulk_inventory_upload
 from app.models.enums import Role
+
 from app.schemas.branches import (
     BranchAdminRequest,
     DeliverySlotAdminRequest,
     InventoryCreateRequest,
     InventoryUpdateRequest,
 )
-from app.services.inventory_service import InventoryService
-from app.services.branch_service import BranchService
-from app.utils.request_params import optional_uuid, safe_int, toggle_flag
-from app.utils.responses import success_envelope
-
 blueprint = Blueprint("admin_branches", __name__)
 
+## CREATE (Branch)
 @blueprint.post("/branches")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -26,6 +29,7 @@ def create_branch():
     return jsonify(success_envelope(branch)), 201
 
 
+## UPDATE (Branch)
 @blueprint.patch("/branches/<uuid:branch_id>")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -35,6 +39,7 @@ def update_branch(branch_id: UUID):
     return jsonify(success_envelope(branch))
 
 
+## TOGGLE ACTIVE (Branch)
 @blueprint.patch("/branches/<uuid:branch_id>/toggle")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -44,6 +49,7 @@ def toggle_branch(branch_id: UUID):
     return jsonify(success_envelope(branch))
 
 
+## CREATE (Delivery Slot)
 @blueprint.post("/delivery-slots")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -58,6 +64,7 @@ def create_delivery_slot():
     return jsonify(success_envelope(slot)), 201
 
 
+## UPDATE (Delivery Slot)
 @blueprint.patch("/delivery-slots/<uuid:slot_id>")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -72,6 +79,7 @@ def update_delivery_slot(slot_id: UUID):
     return jsonify(success_envelope(slot))
 
 
+## TOGGLE ACTIVE (Delivery Slot)
 @blueprint.patch("/delivery-slots/<uuid:slot_id>/toggle")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -81,6 +89,7 @@ def toggle_delivery_slot(slot_id: UUID):
     return jsonify(success_envelope(slot))
 
 
+## READ (Inventory)
 @blueprint.get("/inventory")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -93,6 +102,7 @@ def list_inventory():
     return jsonify(success_envelope(payload))
 
 
+## UPDATE (Inventory)
 @blueprint.patch("/inventory/<uuid:inventory_id>")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -102,6 +112,7 @@ def update_inventory(inventory_id: UUID):
     return jsonify(success_envelope(inventory))
 
 
+## CREATE (Inventory)
 @blueprint.post("/inventory")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -111,6 +122,7 @@ def create_inventory():
     return jsonify(success_envelope(inventory)), 201
 
 # Endpoint: GET /admin/delivery-slots
+## READ (Delivery Slots)
 @blueprint.get("/delivery-slots")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -119,9 +131,9 @@ def list_delivery_slots():
     return jsonify(success_envelope(slots))
 
 # Endpoint: POST /admin/inventory/bulk (CSV upload)
+## CREATE (Bulk Inventory Upload)
 @blueprint.post("/inventory/bulk")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
 def bulk_inventory_upload():
-    from app.services.inventory_bulk_service import handle_bulk_inventory_upload
     return handle_bulk_inventory_upload()

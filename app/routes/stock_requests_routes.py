@@ -18,6 +18,7 @@ from app.utils.responses import pagination_envelope, success_envelope
 
 blueprint = Blueprint("stock_requests", __name__)
 
+## CREATE (Stock Request)
 @blueprint.post("")
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
@@ -26,6 +27,7 @@ def create_stock_request():
     result = StockRequestService.create_request(current_user_id(), payload)
     return jsonify(success_envelope(result)), 201
 
+## READ (My Stock Requests)
 @blueprint.get("/my")
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
@@ -34,6 +36,7 @@ def list_my_requests():
     rows, total = StockRequestService.list_my(current_user_id(), limit, offset)
     return jsonify(success_envelope(rows, pagination_envelope(total, limit, offset)))
 
+## READ (Admin Stock Requests)
 @blueprint.get("/admin")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -47,6 +50,7 @@ def list_admin_requests():
     rows, total = StockRequestService.list_admin(status, limit, offset)
     return jsonify(success_envelope(rows, pagination_envelope(total, limit, offset)))
 
+## READ (Admin Stock Request Detail)
 @blueprint.get("/admin/<uuid:request_id>")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -55,6 +59,7 @@ def get_admin_request(request_id: UUID):
     result = StockRequestService.get_request(request_id)
     return jsonify(success_envelope(result))
 
+## UPDATE (Review Stock Request)
 @blueprint.patch("/admin/<uuid:request_id>/resolve")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -69,6 +74,7 @@ def review_request(request_id: UUID):
     )
     return jsonify(success_envelope(result))
 
+## UPDATE (Bulk Review Stock Requests)
 @blueprint.patch("/admin/bulk-review")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)

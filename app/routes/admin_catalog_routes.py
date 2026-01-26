@@ -10,6 +10,7 @@ from app.utils.responses import success_envelope
 
 blueprint = Blueprint("admin_catalog", __name__)
 
+## CREATE (Category)
 @blueprint.post("/categories")
 @require_role(Role.MANAGER, Role.ADMIN)
 def create_category():
@@ -17,6 +18,7 @@ def create_category():
     category = CatalogAdminService.create_category(payload.name, payload.description)
     return jsonify(success_envelope(category)), 201
 
+## UPDATE (Category)
 @blueprint.patch("/categories/<uuid:category_id>")
 @require_role(Role.MANAGER, Role.ADMIN)
 def update_category(category_id: UUID):
@@ -24,6 +26,7 @@ def update_category(category_id: UUID):
     category = CatalogAdminService.update_category(category_id, payload.name, payload.description)
     return jsonify(success_envelope(category))
 
+## TOGGLE ACTIVE (Category)
 @blueprint.patch("/categories/<uuid:category_id>/toggle")
 @require_role(Role.MANAGER, Role.ADMIN)
 def toggle_category(category_id: UUID):
@@ -31,6 +34,7 @@ def toggle_category(category_id: UUID):
     category = CatalogAdminService.toggle_category(category_id, active)
     return jsonify(success_envelope(category))
 
+## CREATE (Product)
 @blueprint.post("/products")
 @require_role(Role.MANAGER, Role.ADMIN)
 def create_product():
@@ -44,6 +48,7 @@ def create_product():
     )
     return jsonify(success_envelope(product)), 201
 
+## UPDATE (Product)
 @blueprint.patch("/products/<uuid:product_id>")
 @require_role(Role.MANAGER, Role.ADMIN)
 def update_product(product_id: UUID):
@@ -58,6 +63,7 @@ def update_product(product_id: UUID):
     )
     return jsonify(success_envelope(product))
 
+## TOGGLE ACTIVE (Product)
 @blueprint.patch("/products/<uuid:product_id>/toggle")
 @require_role(Role.MANAGER, Role.ADMIN)
 def toggle_product(product_id: UUID):

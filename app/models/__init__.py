@@ -10,6 +10,7 @@ from .inventory import Inventory
 from .order import Order, OrderDeliveryDetails, OrderItem, OrderPickupDetails
 from .payment_token import PaymentToken
 from .product import Product
+from .registration_otp import RegistrationOTP
 from .stock_request import StockRequest
 from .user import User
 from .wishlist_item import WishlistItem
@@ -40,6 +41,7 @@ __all__ = [
     "OrderPickupDetails",
     "PaymentToken",
     "Product",
+    "RegistrationOTP",
     "StockRequest",
     "User",
     "WishlistItem",

@@ -15,6 +15,7 @@ def _parse(body_model, data: dict | None):
         raise DomainError("BAD_REQUEST", "Missing JSON body", status_code=400)
     return body_model.model_validate(data)
 
+## CREATE (Checkout Preview)
 @blueprint.post("/preview")
 @jwt_required()
 def preview():
@@ -22,10 +23,10 @@ def preview():
     result = CheckoutService.preview(payload)
     return jsonify(success_envelope(result))
 
+## CREATE (Checkout Confirm)
 @blueprint.post("/confirm")
 @jwt_required()
 def confirm():
-    # Extract idempotency key from header (required)
     idempotency_key = request.headers.get("Idempotency-Key")
     if not idempotency_key:
         raise DomainError("MISSING_IDEMPOTENCY_KEY", "Idempotency-Key header is required", status_code=400)

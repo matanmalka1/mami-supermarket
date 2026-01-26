@@ -4,6 +4,7 @@ from typing import Any
 from flask import current_app
 from flask_jwt_extended import create_access_token, create_refresh_token
 from sqlalchemy.exc import IntegrityError
+
 from ..extensions import db
 from ..middleware.error_handler import DomainError
 from ..models import User
@@ -17,11 +18,18 @@ class AuthService:
     def get_user_by_email(email: str) -> User | None:
         session = db.session
         return session.query(User).filter_by(email=email).first()
+
+    @staticmethod
+    def _load_user_or_raise(user_id: str, error_code: str = "USER_NOT_FOUND", message: str = "User not found") -> User:
+        user = db.session.get(User, user_id)
+        if not user:
+            raise DomainError(error_code, message)
+        return user
+
     @staticmethod
     def register(data: RegisterRequest) -> User:
         session = db.session
-        exists = session.query(User).filter_by(email=data.email).first()
-        if exists:
+        if AuthService.get_user_by_email(data.email):
             raise DomainError("USER_EXISTS", "User already exists")
 
         user = User(
@@ -43,7 +51,7 @@ class AuthService:
     @staticmethod
     def authenticate(email: str, password: str) -> User:
         session = db.session
-        user = session.query(User).filter_by(email=email).first()
+        user = AuthService.get_user_by_email(email)
         if not user:
             raise DomainError("INVALID_CREDENTIALS", "Invalid email or password")
 
@@ -55,9 +63,7 @@ class AuthService:
     @staticmethod
     def change_password(user_id: str, current_password: str, new_password: str) -> None:
         session = db.session
-        user = session.get(User, user_id)
-        if not user:
-            raise DomainError("USER_NOT_FOUND", "Authenticated user not found")
+        user = AuthService._load_user_or_raise(user_id, message="Authenticated user not found")
 
         if not verify_password(current_password, user.password_hash):
             raise DomainError("INVALID_CREDENTIALS", "Current password is incorrect")
@@ -69,9 +75,7 @@ class AuthService:
     @staticmethod
     def set_password(user_id: str, new_password: str) -> None:
         session = db.session
-        user = session.get(User, user_id)
-        if not user:
-            raise DomainError("USER_NOT_FOUND", "User not found")
+        user = AuthService._load_user_or_raise(user_id)
         user.password_hash = hash_password(new_password)
         session.add(user)
         session.commit()

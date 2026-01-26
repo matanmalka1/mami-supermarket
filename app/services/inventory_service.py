@@ -85,6 +85,7 @@ class InventoryService:
             branch_name=inventory.branch.name,
             product_id=inventory.product_id,
             product_name=inventory.product.name,
+            product_sku=inventory.product.sku,
             available_quantity=inventory.available_quantity,
             reserved_quantity=inventory.reserved_quantity,
             limit=0,

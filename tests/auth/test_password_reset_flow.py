@@ -19,7 +19,7 @@ def _configure_email(test_app):
     test_app.config.update(
         {
             "BREVO_API_KEY": "test-key",
-            "BREVO_RESET_TOKEM_OTP_ID": "1",
+            "BREVO_RESET_TOKEN_OTP_ID": "1",
             "BREVO_SENDER_EMAIL": "sender@example.com",
             "FRONTEND_BASE_URL": "http://frontend",
             "APP_ENV": "development",
@@ -36,6 +36,10 @@ def test_forgot_password_sends_email_and_persists_hash(monkeypatch, client, sess
 
         class Resp:
             status_code = 200
+
+            @property
+            def text(self) -> str:
+                return "{}"
 
         return Resp()
 

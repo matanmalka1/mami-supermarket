@@ -6,6 +6,7 @@ from app.utils.responses import success_envelope
 
 blueprint = Blueprint("admin_settings", __name__, url_prefix="/api/v1/admin")
 
+## READ (Settings)
 @blueprint.get("/settings")
 @jwt_required()
 @require_role(Role.ADMIN)
@@ -20,6 +21,7 @@ def get_settings():
 
 
 # Minimal update endpoint for settings
+## UPDATE (Settings)
 @blueprint.put("/settings")
 @jwt_required()
 @require_role(Role.ADMIN, Role.MANAGER)

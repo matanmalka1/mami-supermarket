@@ -19,6 +19,7 @@ from app.utils.responses import success_envelope
 blueprint = Blueprint("ops_actions", __name__)
 
 
+## UPDATE (Sync Order)
 @blueprint.post("/orders/<uuid:order_id>/sync")
 @jwt_required()
 @require_role(Role.ADMIN)
@@ -37,6 +38,7 @@ def sync_order(order_id: UUID):
     return jsonify(success_envelope({"synced": True}))
 
 
+## CREATE (Report Damage)
 @blueprint.post("/orders/<uuid:order_id>/items/<uuid:item_id>/report-damage")
 @jwt_required()
 @require_role(Role.ADMIN)
@@ -65,6 +67,7 @@ def report_damage(order_id: UUID, item_id: UUID):
     return jsonify(success_envelope({"reported": True})), 201
 
 
+## READ (Map View)
 @blueprint.get("/map")
 @jwt_required()
 @require_role(Role.ADMIN)

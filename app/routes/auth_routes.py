@@ -32,6 +32,7 @@ def _parse_payload(request_body: dict | None) -> dict:
 def _build_response(payload: AuthResponse):
     return jsonify(success_envelope(payload.model_dump()))
 
+## READ (Current User)
 @blueprint.get("/me")
 @jwt_required()
 def me():
@@ -51,6 +52,7 @@ def me():
     )
 
 
+## CREATE (Register)
 @blueprint.post("/register")
 def register():
     payload = RegisterRequest.model_validate(_parse_payload(request.get_json()))
@@ -59,6 +61,7 @@ def register():
     return _build_response(response), 201
 
 
+## CREATE (Login)
 @blueprint.post("/login")
 @limiter.limit("5 per minute")
 def login():
@@ -85,6 +88,7 @@ def login():
     return _build_response(response)
 
 # Endpoint: POST /forgot-password
+## CREATE (Forgot Password)
 @blueprint.post("/forgot-password")
 def forgot_password():
     payload = request.get_json() or {}
@@ -120,6 +124,7 @@ def forgot_password():
     return jsonify(success_envelope(response_body)), 200
 
 # Endpoint: POST /auth/reset-password
+## UPDATE (Reset Password)
 @blueprint.post("/reset-password")
 def reset_password():
     payload = ResetPasswordRequest.model_validate(request.get_json() or {})
@@ -139,6 +144,7 @@ def reset_password():
     )
     return jsonify(success_envelope({"message": "Password has been reset"})), 200
 
+## UPDATE (Change Password)
 @blueprint.post("/change-password")
 @jwt_required()
 def change_password():

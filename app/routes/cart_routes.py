@@ -15,6 +15,7 @@ from app.utils.responses import success_envelope
 blueprint = Blueprint("cart", __name__)
 
 
+## READ (Cart)
 @blueprint.get("")
 @jwt_required()
 def get_cart():
@@ -23,6 +24,7 @@ def get_cart():
     return jsonify(success_envelope(cart))
 
 
+## CREATE (Cart Item)
 @blueprint.post("/items")
 @jwt_required()
 def add_item():
@@ -32,6 +34,7 @@ def add_item():
     return jsonify(success_envelope(cart)), 201
 
 
+## UPDATE (Cart Item)
 @blueprint.put("/items/<uuid:item_id>")
 @jwt_required()
 def update_item(item_id: UUID):
@@ -42,6 +45,7 @@ def update_item(item_id: UUID):
     return jsonify(success_envelope(cart))
 
 
+## DELETE (Cart Item)
 @blueprint.delete("/items/<uuid:item_id>")
 @jwt_required()
 def delete_item(item_id: UUID):
@@ -49,6 +53,7 @@ def delete_item(item_id: UUID):
     cart = CartService.delete_item(user_id, CartService.get_or_create_cart(user_id).id, item_id)
     return jsonify(success_envelope(cart))
 
+## DELETE (Clear Cart)
 @blueprint.delete("")
 @jwt_required()
 def clear_cart():

@@ -29,6 +29,7 @@ _SHIPPING_POLICIES = [
 ]
 
 
+## READ (Notifications)
 @blueprint.get("/notifications")
 @jwt_required()
 def notifications():
@@ -37,12 +38,14 @@ def notifications():
     return jsonify(success_envelope(payload))
 
 
+## READ (Shipping Info)
 @blueprint.get("/shipping-info")
 def shipping_info():
     """Return the available shipping policies."""
     return jsonify(success_envelope({"policies": _SHIPPING_POLICIES}))
 
 
+## READ (Wishlist)
 @blueprint.get("/wishlist")
 @jwt_required()
 def wishlist():
@@ -51,6 +54,7 @@ def wishlist():
     return jsonify(success_envelope({"items": items}))
 
 
+## CREATE (Wishlist Item)
 @blueprint.post("/wishlist")
 @jwt_required()
 def add_to_wishlist():
@@ -59,6 +63,7 @@ def add_to_wishlist():
     return jsonify(success_envelope(item))
 
 
+## DELETE (Wishlist Item)
 @blueprint.delete("/wishlist/<uuid:product_id>")
 @jwt_required()
 def remove_from_wishlist(product_id):

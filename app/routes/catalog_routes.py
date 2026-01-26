@@ -11,6 +11,7 @@ from app.utils.responses import success_envelope
 blueprint = Blueprint("catalog", __name__)
 
 
+## READ (List Categories)
 @blueprint.get("/categories")
 def list_categories():
     limit = safe_int(request.args, "limit", 50)
@@ -19,6 +20,7 @@ def list_categories():
     return jsonify(success_envelope(categories, {"total": total, "limit": limit, "offset": offset}))
 
 
+## READ (Category Products)
 @blueprint.get("/categories/<uuid:category_id>/products")
 def category_products(category_id):
     limit = safe_int(request.args, "limit", 50)
@@ -28,6 +30,7 @@ def category_products(category_id):
     return jsonify(success_envelope(products, {"total": total, "limit": limit, "offset": offset}))
 
 
+## READ (Get Product)
 @blueprint.get("/products/<uuid:product_id>")
 def get_product(product_id):
     branch_id = optional_uuid(request.args, "branchId")
@@ -35,6 +38,7 @@ def get_product(product_id):
     return jsonify(success_envelope(product))
 
 
+## READ (Search Products)
 @blueprint.get("/products/search")
 def search_products():
     limit = safe_int(request.args, "limit", 50)
@@ -54,6 +58,7 @@ def search_products():
     meta = {"total": total, "limit": limit, "offset": offset, "has_next": has_next}
     return jsonify(success_envelope(products, meta))
     
+## READ (Featured Products)
 @blueprint.get("/products/featured")
 def featured_products():
     limit = safe_int(request.args, "limit", 10)
@@ -62,6 +67,7 @@ def featured_products():
     return jsonify(success_envelope(products))
 
 
+## READ (Autocomplete Products)
 @blueprint.get("/products/autocomplete")
 def autocomplete():
     query = request.args.get("q")
@@ -70,6 +76,7 @@ def autocomplete():
     return jsonify(success_envelope(payload))
 
 
+## READ (Product Reviews)
 @blueprint.get("/products/<uuid:product_id>/reviews")
 def product_reviews(product_id):
     """Return an empty list until the review feed is available."""

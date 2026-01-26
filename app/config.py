@@ -10,8 +10,13 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
+
 def _env_or_default(key: str, default: str) -> str:
     return os.environ.get(key, default)
+
+
+def _env_bool(key: str, default: str) -> bool:
+    return os.environ.get(key, default).lower() in {"1", "true", "yes"}
 
 @dataclass
 class AppConfig:
@@ -37,9 +42,13 @@ class AppConfig:
     FRONTEND_BASE_URL: str = field(
         default_factory=lambda: _env_or_default("FRONTEND_BASE_URL", "http://localhost:5173")
     )
-    BREVO_RESET_TOKEM_OTP_ID: str = field(default_factory=lambda: _env_or_default("BREVO_API_KEY", ""))
-    BREVO_TEMPLATE_ID: str = field(default_factory=lambda: _env_or_default("BREVO_RESET_TOKEM_OTP_ID", ""))
-    BREVO_SEBDER_EMAIL: str = field(default_factory=lambda: _env_or_default("BREVO_SEBDER_EMAIL", ""))
+    BREVO_API_KEY: str = field(default_factory=lambda: _env_or_default("BREVO_API_KEY", ""))
+    BREVO_RESET_TOKEN_OTP_ID: str = field(default_factory=lambda: _env_or_default("BREVO_RESET_TOKEN_OTP_ID", ""))
+    BREVO_REGISTER_OTP_ID: str = field(default_factory=lambda: _env_or_default("BREVO_REGISTER_OTP_ID", ""))
+    BREVO_SENDER_EMAIL: str = field(default_factory=lambda: _env_or_default("BREVO_SENDER_EMAIL", ""))
+    ENABLE_REGISTRATION_OTP: bool = field(
+        default_factory=lambda: _env_bool("ENABLE_REGISTRATION_OTP", "false")
+    )
     APP_ENV: str = field(default_factory=lambda: _env_or_default("APP_ENV", "production"))
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
     SQLALCHEMY_DATABASE_URI: str = field(init=False)

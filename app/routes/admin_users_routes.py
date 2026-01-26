@@ -15,6 +15,7 @@ from app.utils.request_params import parse_int, parse_bool, parse_enum
 blueprint = Blueprint("admin_users", __name__)
 
 
+## READ (List Users)
 @blueprint.get("")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -42,6 +43,7 @@ def list_users():
     })
 
 
+## READ (Get User)
 @blueprint.get("/<user_id>")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -56,6 +58,7 @@ def get_user(user_id: str):
     return jsonify(success_envelope(user.model_dump()))
 
 
+## UPDATE (User)
 @blueprint.patch("/<user_id>")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
@@ -76,6 +79,7 @@ def update_user(user_id: str):
     return jsonify(success_envelope(user.model_dump()))
 
 
+## TOGGLE ACTIVE (User)
 @blueprint.patch("/<user_id>/toggle")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)

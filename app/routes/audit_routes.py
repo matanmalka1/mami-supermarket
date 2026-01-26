@@ -41,6 +41,7 @@ def _parse_filters() -> tuple[dict, int, int]:
     return params, limit, offset
 
 
+## READ (Audit Logs)
 @blueprint.get("")
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
