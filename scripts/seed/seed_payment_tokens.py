@@ -14,15 +14,18 @@ def _ensure_payment_token(
     *,
     user_id,
     provider: str,
-    token: str,
+    provider_token: str,
     is_default: bool,
-    metadata: dict | None = None,
+    brand: str,
+    last4: str,
+    exp_month: int,
+    exp_year: int,
 ) -> PaymentToken:
     existing = session.execute(
         select(PaymentToken).where(
             PaymentToken.user_id == user_id,
             PaymentToken.provider == provider,
-            PaymentToken.token == token,
+            PaymentToken.provider_token == provider_token,
         )
     ).scalar_one_or_none()
 
@@ -35,9 +38,12 @@ def _ensure_payment_token(
     pt = PaymentToken(
         user_id=user_id,
         provider=provider,
-        token=token,
+        provider_token=provider_token,
         is_default=is_default,
-        metadata_payload=metadata,
+        brand=brand,
+        last4=last4,
+        exp_month=exp_month,
+        exp_year=exp_year,
     )
     session.add(pt)
     return pt
@@ -50,6 +56,7 @@ def seed_payment_tokens(session: Session) -> list[PaymentToken]:
 
     created: list[PaymentToken] = []
 
+
     for u in users:
         session.execute(
             PaymentToken.__table__.update()
@@ -57,28 +64,34 @@ def seed_payment_tokens(session: Session) -> list[PaymentToken]:
             .values(is_default=False)
         )
 
-        token = f"tok_{secrets.token_urlsafe(24)}"
+        provider_token = f"tok_{secrets.token_urlsafe(24)}"
         created.append(
             _ensure_payment_token(
                 session,
                 user_id=u.id,
                 provider="mockpay",
-                token=token,
+                provider_token=provider_token,
                 is_default=True,
-                metadata={"last4": "4242", "brand": "VISA", "exp": "12/29"},
+                brand="VISA",
+                last4="4242",
+                exp_month=12,
+                exp_year=2029,
             )
         )
 
         if str(u.email).endswith("@example.com"):
-            token2 = f"tok_{secrets.token_urlsafe(24)}"
+            provider_token2 = f"tok_{secrets.token_urlsafe(24)}"
             created.append(
                 _ensure_payment_token(
                     session,
                     user_id=u.id,
                     provider="mockpay",
-                    token=token2,
+                    provider_token=provider_token2,
                     is_default=False,
-                    metadata={"last4": "1111", "brand": "MASTERCARD", "exp": "07/28"},
+                    brand="MASTERCARD",
+                    last4="1111",
+                    exp_month=7,
+                    exp_year=2028,
                 )
             )
 

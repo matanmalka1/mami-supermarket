@@ -1,11 +1,11 @@
-# seed/seed_inventory.py
+# scripts/seed/seed_inventory.py
 from __future__ import annotations
 
 import random
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.inventory import Inventory 
+from app.models.inventory import Inventory
 from app.models.product import Product
 from app.models.category import Category
 from app.models.branch import Branch
@@ -14,8 +14,8 @@ from app.models.branch import Branch
 def _ensure_inventory(
     session: Session,
     *,
-    product_id,
-    branch_id,
+    product_id: int,
+    branch_id: int,
     available_quantity: int,
     reserved_quantity: int,
 ) -> Inventory:
@@ -43,53 +43,47 @@ def _ensure_inventory(
 
 
 def _qty_range_for_category(category_name: str) -> tuple[int, int]:
-    c = category_name.lower()
+    c = (category_name or "").lower()
     if "frozen" in c:
-        return (5, 40)
-    if "dairy" in c or "eggs" in c:
-        return (10, 80)
-    if "meat" in c or "fish" in c:
-        return (5, 30)
-    if "fruits" in c or "vegetables" in c:
-        return (15, 120)
+        return (5, 60)
+    if ("dairy" in c) or ("eggs" in c):
+        return (10, 120)
+    if ("meat" in c) or ("fish" in c):
+        return (3, 45)
+    if ("fruits" in c) or ("vegetables" in c):
+        return (15, 220)
     if "bakery" in c:
-        return (10, 90)
+        return (8, 140)
     if "beverages" in c:
-        return (20, 200)
+        return (20, 260)
     if "household" in c:
-        return (10, 150)
+        return (10, 200)
     if "personal care" in c:
-        return (5, 80)
-    return (10, 120)
+        return (6, 120)
+    return (10, 180)
 
 
 def seed_inventory(session: Session) -> list[Inventory]:
     branches = session.execute(select(Branch)).scalars().all()
-    products = session.execute(
-        select(Product).options()
-    ).scalars().all()
+    products = session.execute(select(Product)).scalars().all()
+    categories = session.execute(select(Category)).scalars().all()
 
     if not branches:
         raise RuntimeError("No branches found. Seed branches first.")
     if not products:
         raise RuntimeError("No products found. Seed products first.")
 
-    categories = session.execute(select(Category)).scalars().all()
-    category_by_id = {c.id: c for c in categories}
+    cat_by_id = {c.id: c.name for c in categories}
+    rnd = random.Random(42)
 
     created: list[Inventory] = []
-    rnd = random.Random(42)  
-
     for b in branches:
+        branch_bias = 0.9 + (0.05 * (b.id % 5))
         for p in products:
-            cat = category_by_id.get(p.category_id)
-            cat_name = cat.name if cat else "Unknown"
-
+            cat_name = cat_by_id.get(p.category_id, "Unknown")
             lo, hi = _qty_range_for_category(cat_name)
-            available = rnd.randint(lo, hi)
-
-            reserved = rnd.randint(0, min(8, max(0, available // 10)))
-
+            available = int(rnd.randint(lo, hi) * branch_bias)
+            reserved = rnd.randint(0, min(10, max(0, available // 10)))
             created.append(
                 _ensure_inventory(
                     session,

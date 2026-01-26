@@ -14,8 +14,10 @@ class Inventory(Base, TimestampMixin):
     id = Column(Integer, primary_key=True, autoincrement=True)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     branch_id = Column(Integer, ForeignKey("branches.id"), nullable=False)
+
     available_quantity = Column(Integer, nullable=False, default=0)
     reserved_quantity = Column(Integer, nullable=False, default=0)
+    reorder_point = Column(Integer, nullable=False, default=0)
 
     product = relationship("Product", back_populates="inventory")
     branch = relationship("Branch", back_populates="inventory")

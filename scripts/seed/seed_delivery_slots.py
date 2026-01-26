@@ -46,11 +46,6 @@ def _ensure_delivery_slot(
 
 
 def seed_delivery_slots(session: Session) -> list[DeliverySlot]:
-    """
-    Creates delivery slots for all branches.
-    - Days: Sunday (0) to Saturday (6)
-    - Time slots: 8:00-10:00, 10:00-12:00, 12:00-14:00, 14:00-16:00, 16:00-18:00, 18:00-20:00
-    """
     branches = session.execute(select(Branch)).scalars().all()
 
     if not branches:
