@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+
+# PUBLIC: All endpoints in this file are intentionally unauthenticated for branch and delivery slot info.
 from flask import Blueprint, jsonify, request
 
 from app.services.branch_service import BranchService

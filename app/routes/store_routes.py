@@ -1,5 +1,7 @@
 """Storefront endpoints."""
 
+
+# PUBLIC: The /shipping-info endpoint is intentionally unauthenticated for public access.
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required
 
@@ -39,6 +41,8 @@ def notifications():
 
 
 ## READ (Shipping Info)
+
+# PUBLIC ENDPOINT
 @blueprint.get("/shipping-info")
 def shipping_info():
     """Return the available shipping policies."""
