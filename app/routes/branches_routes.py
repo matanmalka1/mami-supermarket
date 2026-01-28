@@ -8,11 +8,9 @@ from flask import Blueprint, jsonify, request
 
 from app.services.branch_service import BranchService
 from app.utils.responses import success_envelope
-from app.schemas.branches_query import DeliverySlotsQuery
-from app.schemas.branches_query import BranchesQuery
+from app.schemas.branches import BranchesQuery , DeliverySlotsQuery
 
 blueprint = Blueprint("branches", __name__)
-
 
 ## READ (Branches)
 @blueprint.get("/branches")

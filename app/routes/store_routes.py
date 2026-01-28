@@ -9,7 +9,7 @@ from app.schemas.store import WishlistRequest
 from app.services.store import WishlistService
 from app.utils.request_utils import current_user_id, parse_json_or_400
 from app.utils.responses import success_envelope
-from app.schemas.store_query import WishlistQuery
+from app.schemas.store import WishlistQuery
 
 blueprint = Blueprint("store", __name__)
 
