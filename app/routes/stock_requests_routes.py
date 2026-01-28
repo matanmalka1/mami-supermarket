@@ -11,7 +11,7 @@ from app.schemas.stock_requests import (
     StockRequestCreateRequest,
     StockRequestReviewRequest,
 )
-from app.schemas.admin_stock_requests_query import AdminStockRequestsQuery
+from app.schemas.admin_branches_query import AdminStockRequestsQuery
 from app.services.stock_requests_service import StockRequestService
 from app.utils.request_utils import current_user_id, parse_json_or_400, parse_pagination
 from app.utils.responses import pagination_envelope, success_envelope

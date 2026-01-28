@@ -6,15 +6,17 @@ from app.middleware.auth import require_role
 from app.models.enums import Role
 from app.services.admin_analytics_service import AdminAnalyticsService
 from app.utils.responses import success_envelope
+from app.schemas.admin_branches_query import RevenueQuery
 
 blueprint = Blueprint("admin_analytics", __name__)
-
 
 @blueprint.get("/revenue")
 @jwt_required()
 @require_role(Role.ADMIN)
 def revenue():
-    range_ = request.args.get("range", "30d")
-    granularity = request.args.get("granularity")
-    data = AdminAnalyticsService.get_revenue(range_, granularity)
+    try:
+        params = RevenueQuery(**request.args)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 422
+    data = AdminAnalyticsService.get_revenue(params.range, params.granularity)
     return jsonify(success_envelope(data))

@@ -6,7 +6,7 @@ from app.schemas.catalog import CategoryAdminRequest, ProductAdminRequest, Produ
 from app.services.catalog_service import CatalogAdminService
 from app.utils.request_params import toggle_flag
 from app.utils.responses import success_envelope
-from app.schemas.admin_catalog_query import ToggleCategoryQuery
+from app.schemas.admin_branches_query import ToggleCategoryQuery
 
 blueprint = Blueprint("admin_catalog", __name__)
 
