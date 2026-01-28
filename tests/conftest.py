@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import time
 
 import pytest
+from sqlalchemy import event
 
 pytest_plugins = ["tests.profile.profile_fixtures"]
 
@@ -93,22 +94,27 @@ def test_app():
 @pytest.fixture
 def session(test_app):
     with test_app.app_context():
-        # Fresh DB per test
-        Base.metadata.drop_all(bind=db.engine)
-        Base.metadata.create_all(bind=db.engine)
-        warehouse_id = int(test_app.config["DELIVERY_SOURCE_BRANCH_ID"])
-        branch = Branch(id=warehouse_id, name="Warehouse", address="Nowhere 1")
-        db.session.add(branch)
-        slot = DeliverySlot(
-            branch_id=warehouse_id,
-            day_of_week=0,
-            start_time=time(6, 0),
-            end_time=time(8, 0),
-        )
-        db.session.add(slot)
-        db.session.commit()
-        yield db.session
-        db.session.rollback()
+        connection = db.engine.connect()
+        transaction = connection.begin()
+        options = {"bind": connection, "binds": {}}
+        scoped_session = db.create_scoped_session(options=options)
+        original_session = db.session
+        db.session = scoped_session
+        session_obj = scoped_session()
+        session_obj.begin_nested()
+
+        @event.listens_for(session_obj, "after_transaction_end")
+        def restart_savepoint(session, nested_transaction):
+            if nested_transaction.nested and not nested_transaction._parent.nested:
+                session.begin_nested()
+
+        try:
+            yield scoped_session
+        finally:
+            scoped_session.remove()
+            transaction.rollback()
+            connection.close()
+            db.session = original_session
 
 
 @pytest.fixture

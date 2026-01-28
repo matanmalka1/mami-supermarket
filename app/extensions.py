@@ -1,6 +1,6 @@
 """Extension registration (DB, JWT, limiter)."""
 
-from flask import current_app ,request
+from flask import current_app, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_limiter import Limiter
@@ -9,9 +9,9 @@ from flask_limiter.util import get_remote_address
 db = SQLAlchemy()
 jwt = JWTManager()
 
+
 def _skip_options() -> bool:
     return request.method == "OPTIONS"
-
 
 
 def get_rate_limit_defaults():
@@ -19,9 +19,14 @@ def get_rate_limit_defaults():
     return tuple(limit.strip() for limit in limits.split(",") if limit.strip())
 
 
-# Use a lambda to fetch rate limits per-request, so config changes are picked up without restart
+def _dynamic_default_limits() -> str:
+    defaults = get_rate_limit_defaults()
+    return ", ".join(defaults) if defaults else ""
+
+
+# Use a callable that reads the config each request so rate limits follow runtime config.
 limiter = Limiter(
     key_func=get_remote_address,
-    default_limits_getter=lambda: get_rate_limit_defaults(),
+    default_limits=[_dynamic_default_limits],
 )
 limiter.request_filter = _skip_options

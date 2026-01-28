@@ -1,11 +1,11 @@
 from __future__ import annotations
-from sqlalchemy import select , func
+from sqlalchemy import select, func, exists
 from sqlalchemy.orm import selectinload
 from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import Category, Inventory, Product
 from app.schemas.catalog import AutocompleteItem, AutocompleteResponse, CategoryResponse, ProductResponse
-from .mappers import map_products, matches_stock, to_category_response, to_product_response
+from .mappers import map_products, to_category_response, to_product_response
 
 
 class CatalogQueryService:
@@ -72,6 +72,16 @@ class CatalogQueryService:
             base = base.where(Product.price <= max_price)
         if organic_only:
             base = base.where(Product.is_organic.is_(True))
+        if in_stock is not None:
+            stock_match = (
+                select(Inventory.id)
+                .where(Inventory.product_id == Product.id)
+                .where(Inventory.available_quantity > 0)
+            )
+            if branch_id:
+                stock_match = stock_match.where(Inventory.branch_id == branch_id)
+            predicate = exists(stock_match)
+            base = base.where(predicate if in_stock else ~predicate)
         # Sorting
         if sort == "price_asc":
             base = base.order_by(Product.price.asc())
@@ -87,23 +97,8 @@ class CatalogQueryService:
             base = base.order_by(Product.id.desc())
         stmt = base.options(selectinload(Product.inventory).selectinload(Inventory.branch)).offset(offset).limit(limit)
         products = db.session.execute(stmt).scalars().all()
-        if in_stock is not None:
-            products = [p for p in products if matches_stock(p, branch_id, in_stock)]
-            total = len(products)
-        else:
-            # Count total (ignoring offset/limit)
-            count_base = select(func.count()).select_from(Product).where(Product.is_active.is_(True))
-            if query:
-                count_base = count_base.where(Product.name.ilike(f"%{query}%"))
-            if category_id:
-                count_base = count_base.where(Product.category_id == category_id)
-            if min_price is not None:
-                count_base = count_base.where(Product.price >= min_price)
-            if max_price is not None:
-                count_base = count_base.where(Product.price <= max_price)
-            if organic_only:
-                count_base = count_base.where(Product.is_organic.is_(True))
-            total = db.session.scalar(count_base)
+        count_stmt = select(func.count()).select_from(base.subquery())
+        total = db.session.scalar(count_stmt)
         return map_products(products, branch_id), total or 0
 
     @staticmethod
