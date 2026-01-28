@@ -36,6 +36,7 @@ def create_app(config: AppConfig | None = None) -> Flask:
         instance_relative_config=False,
         static_folder=None,
     )
+
     cfg = config or AppConfig()
     app.config.from_mapping(vars(cfg))
 

@@ -1,11 +1,10 @@
 """Extension registration (DB, JWT, limiter)."""
 
-from flask import request
+from flask import current_app ,request
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import os
 
 db = SQLAlchemy()
 jwt = JWTManager()
@@ -13,11 +12,13 @@ jwt = JWTManager()
 def _skip_options() -> bool:
     return request.method == "OPTIONS"
 
-lim_defaults = tuple(
-    limit.strip()
-    for limit in os.environ.get("RATE_LIMIT_DEFAULTS", "200 per day, 50 per hour").split(",")
-    if limit.strip()
-)
+
+
+def get_rate_limit_defaults():
+    limits = current_app.config.get("RATE_LIMIT_DEFAULTS", "200 per day, 50 per hour")
+    return tuple(limit.strip() for limit in limits.split(",") if limit.strip())
+
+lim_defaults = get_rate_limit_defaults()
 
 limiter = Limiter(
     key_func=get_remote_address,
