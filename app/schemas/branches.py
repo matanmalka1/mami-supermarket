@@ -5,30 +5,30 @@ from pydantic import Field
 from .common import DefaultModel, Pagination
 
 class BranchResponse(DefaultModel):
-    id: int
-    name: str
-    address: str
+    id: int = Field(gt=0)
+    name: str = Field(min_length=2, max_length=100)
+    address: str = Field(min_length=5, max_length=200)
     is_active: bool
 
 class DeliverySlotResponse(DefaultModel):
-    id: int
-    branch_id: int
-    day_of_week: int
+    id: int = Field(gt=0)
+    branch_id: int = Field(gt=0)
+    day_of_week: int = Field(ge=0, le=6)
     start_time: time
     end_time: time
 
 class InventoryResponse(DefaultModel):
-    id: int
-    branch_id: int
-    branch_name: str
-    product_id: int
-    product_name: str
-    product_sku: str
-    available_quantity: int
-    reserved_quantity: int
-    limit: int
-    offset: int
-    total: int
+    id: int = Field(gt=0)
+    branch_id: int = Field(gt=0)
+    branch_name: str = Field(min_length=2, max_length=100)
+    product_id: int = Field(gt=0)
+    product_name: str = Field(min_length=2, max_length=100)
+    product_sku: str = Field(min_length=2, max_length=30)
+    available_quantity: int = Field(ge=0, le=100000)
+    reserved_quantity: int = Field(ge=0, le=100000)
+    limit: int = Field(ge=0, le=10000)
+    offset: int = Field(ge=0, le=100000)
+    total: int = Field(ge=0, le=100000)
 
 class InventoryListResponse(DefaultModel):
     items: list[InventoryResponse]

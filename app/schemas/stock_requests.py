@@ -6,21 +6,21 @@ from .common import DefaultModel
 from ..models.enums import StockRequestStatus, StockRequestType
 
 class StockRequestCreateRequest(DefaultModel):
-    branch_id: int
-    product_id: int
-    quantity: int = Field(gt=0)
+    branch_id: int = Field(gt=0)
+    product_id: int = Field(gt=0)
+    quantity: int = Field(gt=0, le=10000)
     request_type: StockRequestType
 
 class StockRequestReviewRequest(DefaultModel):
     status: StockRequestStatus
-    approved_quantity: int | None = None
-    rejection_reason: str | None = None
+    approved_quantity: int | None = Field(default=None, gt=0, le=10000)
+    rejection_reason: str | None = Field(default=None, min_length=2, max_length=200)
 
 class BulkReviewItem(DefaultModel):
-    request_id: int
+    request_id: int = Field(gt=0)
     status: StockRequestStatus
-    approved_quantity: int | None = None
-    rejection_reason: str | None = None
+    approved_quantity: int | None = Field(default=None, gt=0, le=10000)
+    rejection_reason: str | None = Field(default=None, min_length=2, max_length=200)
 
 class BulkReviewRequest(DefaultModel):
     items: list[BulkReviewItem]

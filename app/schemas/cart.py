@@ -5,17 +5,17 @@ from pydantic import Field
 from .common import DefaultModel
 
 class CartItemUpsertRequest(DefaultModel):
-    product_id: int
-    quantity: int = Field(gt=0)
+    product_id: int = Field(gt=0)
+    quantity: int = Field(gt=0, le=10000)
 
 class CartItemResponse(DefaultModel):
-    id: int
-    product_id: int
-    quantity: int
-    unit_price: Decimal
+    id: int = Field(gt=0)
+    product_id: int = Field(gt=0)
+    quantity: int = Field(gt=0, le=10000)
+    unit_price: Decimal = Field(ge=0, le=100000)
 
 class CartResponse(DefaultModel):
-    id: int
-    user_id: int
-    total_amount: Decimal
+    id: int = Field(gt=0)
+    user_id: int = Field(gt=0)
+    total_amount: Decimal = Field(ge=0, le=100000)
     items: list[CartItemResponse]
