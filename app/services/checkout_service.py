@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from decimal import Decimal
+import traceback
+
+from flask import current_app
 
 from app.extensions import db
 from app.middleware.error_handler import DomainError
@@ -86,19 +89,22 @@ class CheckoutService:
             inventory.decrement_inventory(cart.items, inv_map)
             CheckoutOrderBuilder.audit_creation(order, totals.total_amount)
             CheckoutService._maybe_save_default_payment_token(cart.user_id, payload.payment_token_id, payload.save_as_default)
-            
+
             response_payload = CheckoutConfirmResponse(
                 order_id=order.id,
                 order_number=order.order_number,
                 total_paid=Decimal(totals.total_amount),
                 payment_reference=payment_ref,
             )
-            
+
             # Mark idempotency as succeeded
             CheckoutIdempotencyManager.mark_succeeded(idempotency_record, response_payload, order.id)
-            
+
             db.session.commit()
-        except Exception:
+        except DomainError:
+            db.session.rollback()
+            raise
+        except Exception as exc:
             db.session.rollback()
             if payment_ref:
                 AuditService.log_event(
@@ -107,6 +113,12 @@ class CheckoutService:
                     entity_id=cart.id,
                     context={"reference": payment_ref, "cart_id": str(cart.id)},
                 )
+            print("CheckoutService.confirm unexpected error:", exc)
+            traceback.print_exc()
+            current_app.logger.exception(
+                "Unexpected error confirming checkout for cart %s",
+                cart.id,
+            )
             raise
 
         return response_payload, True  # is_new=True for newly created orders

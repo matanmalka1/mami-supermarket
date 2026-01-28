@@ -12,18 +12,26 @@ class BranchCoreService:
     def ensure_delivery_source_branch_exists(branch_id: str) -> Branch:
         """Ensure configured DELIVERY_SOURCE_BRANCH_ID exists; raise if not."""
         if not branch_id:
-            raise DomainError("CONFIG_ERROR", "DELIVERY_SOURCE_BRANCH_ID is not set", status_code=500)
+            raise DomainError(
+                "CONFIG_ERROR",
+                "DELIVERY_SOURCE_BRANCH_ID is not set",
+                status_code=400,
+            )
         try:
             branch_pk = int(branch_id)
         except ValueError as exc:
-            raise DomainError("CONFIG_ERROR", "DELIVERY_SOURCE_BRANCH_ID is not a valid branch ID", status_code=500) from exc
+            raise DomainError(
+                "CONFIG_ERROR",
+                "DELIVERY_SOURCE_BRANCH_ID is not a valid branch ID",
+                status_code=400,
+            ) from exc
 
         branch = db.session.get(Branch, branch_pk)
         if not branch:
             raise DomainError(
                 "CONFIG_ERROR",
                 "Configured DELIVERY_SOURCE_BRANCH_ID does not exist in branches table",
-                status_code=500,
+                status_code=404,
             )
         return branch
 
