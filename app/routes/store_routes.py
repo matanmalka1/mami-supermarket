@@ -2,13 +2,14 @@
 
 
 # PUBLIC: The /shipping-info endpoint is intentionally unauthenticated for public access.
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify ,request
 from flask_jwt_extended import jwt_required
 
 from app.schemas.store import WishlistRequest
 from app.services.store import WishlistService
 from app.utils.request_utils import current_user_id, parse_json_or_400
 from app.utils.responses import success_envelope
+from app.schemas.store_query import WishlistQuery
 
 blueprint = Blueprint("store", __name__)
 
@@ -54,6 +55,10 @@ def shipping_info():
 @jwt_required()
 def wishlist():
     """Return the current user's wishlist."""
+    try:
+        params = WishlistQuery(**request.args)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 422
     items = WishlistService.list_items(current_user_id())
     return jsonify(success_envelope({"items": items}))
 
