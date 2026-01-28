@@ -1,7 +1,9 @@
 from __future__ import annotations
 """Checkout preview and confirm endpoints."""
+
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
+
 from app.middleware.error_handler import DomainError
 from app.schemas.checkout import CheckoutConfirmRequest, CheckoutPreviewRequest
 from app.services.checkout_service import CheckoutService
@@ -26,19 +28,12 @@ def preview():
 @blueprint.post("/confirm")
 @jwt_required()
 def confirm():
-    try:
-        json_data = request.get_json()
-    except Exception:
-        json_data = None
-
+    json_data = request.get_json(silent=True)
     idempotency_key = request.headers.get("Idempotency-Key")
     if not idempotency_key:
         raise DomainError("MISSING_IDEMPOTENCY_KEY", "Idempotency-Key header is required", status_code=400)
 
-    try:
-        payload = _parse(CheckoutConfirmRequest, json_data)
-        result, is_new = CheckoutService.confirm(payload, idempotency_key)
-        status_code = 201 if is_new else 200
-        return jsonify(success_envelope(result)), status_code
-    except Exception as e:
-        raise
+    payload = _parse(CheckoutConfirmRequest, json_data)
+    result, is_new = CheckoutService.confirm(payload, idempotency_key)
+    status_code = 201 if is_new else 200
+    return jsonify(success_envelope(result)), status_code

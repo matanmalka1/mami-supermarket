@@ -44,16 +44,7 @@ def update_branch(branch_id: int):
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
 def toggle_branch(branch_id: int):
-    try:
-        params = ToggleBranchQuery(**request.args)
-    except Exception as e:
-        payload = error_envelope(
-            code="VALIDATION_ERROR",
-            message="Invalid query parameters",
-            status_code=422,
-            details={"error": str(e)}
-        )
-        return jsonify(payload), 422
+    params = ToggleBranchQuery(**request.args)
     branch = BranchService.toggle_branch(branch_id, params.active)
     return jsonify(success_envelope(branch))
 

@@ -42,10 +42,7 @@ def _parse_filters() -> tuple[OrderStatus | None, datetime | None, datetime | No
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
 def list_orders():
-    try:
-        params = OpsOrdersQuery(**request.args)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 422
+    params = OpsOrdersQuery(**request.args)
     orders, total = OpsOrderService.list_orders(
         params.status, params.date_from, params.date_to, params.limit, params.offset
     )
@@ -89,10 +86,7 @@ def create_batch():
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
 def list_ops_stock_requests():
     
-    try:
-        params = OpsStockRequestsQuery(**request.args)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 422
+    params = OpsStockRequestsQuery(**request.args)
     rows, total = StockRequestService.list_ops(
         params.branch_id, params.status, params.limit, params.offset
     )

@@ -53,16 +53,7 @@ def shipping_info():
 @jwt_required()
 def wishlist():
     """Return the current user's wishlist."""
-    try:
-        params = WishlistQuery(**request.args)
-    except Exception as e:
-        payload = error_envelope(
-            code="VALIDATION_ERROR",
-            message="Invalid query parameters",
-            status_code=422,
-            details={"error": str(e)}
-        )
-        return jsonify(payload), 422
+    # params = WishlistQuery(**request.args)  # Removed: unused variable
     items = WishlistService.list_items(current_user_id())
     return jsonify(success_envelope({"items": items}))
 

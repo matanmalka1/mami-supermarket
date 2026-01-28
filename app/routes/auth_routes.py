@@ -54,26 +54,29 @@ def register():
 @limiter.limit("5 per minute")
 def login():
     payload = LoginRequest.model_validate(parse_json_or_400())
+    user = None
     try:
         user = AuthService.authenticate(payload.email, payload.password)
-    except DomainError as exc:
+    finally:
+        if user is None:
+            # Log failed login attempt for business/audit, not for error handling
+            AuditService.log_event(
+                entity_type="user_login",
+                action="LOGIN_FAILURE",
+                context={
+                    "email": payload.email,
+                    "reason": "AUTH_FAILED",
+                },
+            )
+    if user:
         AuditService.log_event(
             entity_type="user_login",
-            action="LOGIN_FAILURE",
-            context={
-                "email": payload.email,
-                "reason": exc.code,
-            },
+            action="LOGIN_SUCCESS",
+            actor_user_id=user.id,
+            entity_id=user.id,
         )
-        raise
-    AuditService.log_event(
-        entity_type="user_login",
-        action="LOGIN_SUCCESS",
-        actor_user_id=user.id,
-        entity_id=user.id,
-    )
-    response = AuthService.build_auth_response(user)
-    return jsonify(success_envelope(response.model_dump()))
+        response = AuthService.build_auth_response(user)
+        return jsonify(success_envelope(response.model_dump()))
 
 # Endpoint: POST /forgot-password
 ## CREATE (Forgot Password)

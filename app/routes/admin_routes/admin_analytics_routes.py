@@ -14,9 +14,6 @@ blueprint = Blueprint("admin_analytics", __name__)
 @jwt_required()
 @require_role(Role.ADMIN)
 def revenue():
-    try:
-        params = RevenueQuery(**request.args)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 422
+    params = RevenueQuery(**request.args)
     data = AdminAnalyticsService.get_revenue(params.range, params.granularity)
     return jsonify(success_envelope(data))

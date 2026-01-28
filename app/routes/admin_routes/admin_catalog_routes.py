@@ -30,16 +30,7 @@ def update_category(category_id: int):
 @blueprint.patch("/categories/<int:category_id>/toggle")
 @require_role(Role.MANAGER, Role.ADMIN)
 def toggle_category(category_id: int):
-    try:
-        params = ToggleCategoryQuery(**request.args)
-    except Exception as e:
-        payload = error_envelope(
-            code="VALIDATION_ERROR",
-            message="Invalid query parameters",
-            status_code=422,
-            details={"error": str(e)}
-        )
-        return jsonify(payload), 422
+    params = ToggleCategoryQuery(**request.args)
     category = CatalogAdminService.toggle_category(category_id, params.active)
     return jsonify(success_envelope(category))
 

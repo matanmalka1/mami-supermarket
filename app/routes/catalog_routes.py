@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-
 # PUBLIC: All endpoints in this file are intentionally unauthenticated for catalog browsing.
 from flask import Blueprint, jsonify, request
 
 from app.services.catalog_service import CatalogQueryService
-from app.utils.request_params import optional_int, safe_bool, safe_int
-from app.utils.responses import success_envelope ,error_envelope
+from app.utils.request_params import optional_int, safe_int
+from app.utils.responses import success_envelope 
+from app.schemas.query_params import ProductSearchQuery
+
 
 blueprint = Blueprint("catalog", __name__)
 
@@ -43,17 +44,7 @@ def get_product(product_id):
 ## READ (Search Products)
 @blueprint.get("/products/search")
 def search_products():
-    from app.schemas.query_params import ProductSearchQuery
-    try:
-        params = ProductSearchQuery(**request.args)
-    except Exception as e:
-        payload = error_envelope(
-            code="VALIDATION_ERROR",
-            message="Invalid query parameters",
-            status_code=422,
-            details={"error": str(e)}
-        )
-        return jsonify(payload), 422
+    params = ProductSearchQuery(**request.args)
     products, total = CatalogQueryService.search_products(
         params.q, None, None, None, params.limit, params.offset, params.min_price, params.max_price, None, params.sort
     )

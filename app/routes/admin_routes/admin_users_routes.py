@@ -22,10 +22,7 @@ blueprint = Blueprint("admin_users", __name__)
 @require_role(Role.MANAGER, Role.ADMIN)
 def list_users():
     """List all users with optional filters."""
-    try:
-        params = AdminUsersQuery(**request.args)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 422
+    params = AdminUsersQuery(**request.args)
     users, total = UserManagementService.list_users(
         q=params.q,
         role=params.role,

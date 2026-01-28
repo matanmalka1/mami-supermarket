@@ -1,20 +1,21 @@
 """Stock request endpoints for employees and managers/admins."""
 
 from __future__ import annotations
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request 
 from flask_jwt_extended import jwt_required
 
 from app.middleware.auth import require_role
 from app.models.enums import Role
+
+from app.schemas.admin_branches_query import AdminStockRequestsQuery
+from app.services.stock_requests_service import StockRequestService
+from app.utils.request_utils import current_user_id, parse_json_or_400, parse_pagination
+from app.utils.responses import pagination_envelope, success_envelope , error_envelope
 from app.schemas.stock_requests import (
     BulkReviewRequest,
     StockRequestCreateRequest,
     StockRequestReviewRequest,
 )
-from app.schemas.admin_branches_query import AdminStockRequestsQuery
-from app.services.stock_requests_service import StockRequestService
-from app.utils.request_utils import current_user_id, parse_json_or_400, parse_pagination
-from app.utils.responses import pagination_envelope, success_envelope , error_envelope
 
 blueprint = Blueprint("stock_requests", __name__)
 
@@ -41,16 +42,7 @@ def list_my_requests():
 @jwt_required()
 @require_role(Role.MANAGER, Role.ADMIN)
 def list_admin_requests():
-    try:
-        params = AdminStockRequestsQuery(**request.args)
-    except Exception as e:
-        payload = error_envelope(
-            code="VALIDATION_ERROR",
-            message="Invalid query parameters",
-            status_code=422,
-            details={"error": str(e)}
-        )
-        return jsonify(payload), 422
+    params = AdminStockRequestsQuery(**request.args)
     rows, total = StockRequestService.list_admin(params.status, params.limit, params.offset)
     return jsonify(success_envelope(rows, pagination_envelope(total, params.limit, params.offset)))
 
