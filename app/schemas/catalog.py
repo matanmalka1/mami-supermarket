@@ -2,6 +2,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 from .common import DefaultModel, Pagination
+from pydantic import Field
 
 class CategoryResponse(DefaultModel):
     id: int
@@ -27,7 +28,6 @@ class ProductResponse(DefaultModel):
     in_stock_anywhere: bool
     in_stock_for_branch: bool | None = None
 
-# For featured endpoint
 class FeaturedProductsResponse(DefaultModel):
     items: list[ProductResponse]
     
@@ -43,19 +43,19 @@ class AutocompleteResponse(Pagination):
     items: list[AutocompleteItem]
 
 class CategoryAdminRequest(DefaultModel):
-    name: str
-    description: str | None = None
+    name: str = Field(min_length=2, max_length=50, regex=r"^[\w\s\-א-ת]+$")
+    description: str | None = Field(default=None, min_length=0, max_length=300)
 
 class ProductAdminRequest(DefaultModel):
-    name: str
-    sku: str
-    price: Decimal
-    category_id: int
-    description: str | None = None
+    name: str = Field(min_length=2, max_length=100, regex=r"^[\w\s\-א-ת]+$")
+    sku: str = Field(min_length=2, max_length=20, regex=r"^[A-Za-z0-9\-]+$")
+    price: Decimal = Field(gt=0, le=10000)
+    category_id: int = Field(gt=0)
+    description: str | None = Field(default=None, min_length=0, max_length=500)
 
 class ProductUpdateRequest(DefaultModel):
-    name: str | None = None
-    sku: str | None = None
-    price: Decimal | None = None
-    category_id: int | None = None
-    description: str | None = None
+    name: str | None = Field(default=None, min_length=2, max_length=100, regex=r"^[\w\s\-א-ת]+$")
+    sku: str | None = Field(default=None, min_length=2, max_length=20, regex=r"^[A-Za-z0-9\-]+$")
+    price: Decimal | None = Field(default=None, gt=0, le=10000)
+    category_id: int | None = Field(default=None, gt=0)
+    description: str | None = Field(default=None, min_length=0, max_length=500)

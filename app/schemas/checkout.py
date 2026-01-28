@@ -1,6 +1,7 @@
 from __future__ import annotations
 from enum import Enum
 from decimal import Decimal
+from pydantic import Field
 from .common import DefaultModel
 from ..models.enums import FulfillmentType
 
@@ -9,11 +10,11 @@ class FulfillmentChoice(str, Enum):
     PICKUP = "PICKUP"
 
 class CheckoutPreviewRequest(DefaultModel):
-    cart_id: int
+    cart_id: int = Field(gt=0)
     fulfillment_type: FulfillmentType
-    branch_id: int | None = None
-    delivery_slot_id: int | None = None
-    address: str | None = None
+    branch_id: int | None = Field(default=None, gt=0)
+    delivery_slot_id: int | None = Field(default=None, gt=0)
+    address: str | None = Field(default=None, min_length=5, max_length=200, regex=r"^[\w\s\-,.א-ת]+$")
 
 class MissingItem(DefaultModel):
     product_id: int
@@ -27,12 +28,12 @@ class CheckoutPreviewResponse(DefaultModel):
     fulfillment_type: FulfillmentType
 
 class CheckoutConfirmRequest(DefaultModel):
-    cart_id: int
-    payment_token_id: int
+    cart_id: int = Field(gt=0)
+    payment_token_id: int = Field(gt=0)
     fulfillment_type: FulfillmentType | None = None
-    branch_id: int | None = None
-    delivery_slot_id: int | None = None
-    address: str | None = None
+    branch_id: int | None = Field(default=None, gt=0)
+    delivery_slot_id: int | None = Field(default=None, gt=0)
+    address: str | None = Field(default=None, min_length=5, max_length=200, regex=r"^[\w\s\-,.א-ת]+$")
     save_as_default: bool = False
 
 class CheckoutConfirmResponse(DefaultModel):

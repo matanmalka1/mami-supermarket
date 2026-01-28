@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
+from .common import DefaultModel
 from typing import Optional
 
-class ProductSearchQuery(BaseModel):
+class ProductSearchQuery(DefaultModel):
     q: Optional[str] = None
     limit: int = Field(default=50, ge=1, le=200)
     offset: int = Field(default=0, ge=0)
