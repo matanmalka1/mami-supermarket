@@ -10,15 +10,15 @@ from app.middleware.auth import require_role
 from app.middleware.error_handler import DomainError
 from app.models.enums import OrderStatus, Role
 from app.services.ops_service import OpsOrderService
+from app.schemas.ops import OpsOrdersQuery
 from app.services.ops.custom_ops_service import (
     create_batch_for_ops,
     get_ops_performance,
     get_ops_alerts,
 )
-
 from app.services.stock_requests_service import StockRequestService
 from app.schemas.stock_requests import StockRequestCreateRequest
-from app.schemas.ops import UpdatePickStatusRequest, UpdateOrderStatusRequest
+from app.schemas.ops import UpdatePickStatusRequest, UpdateOrderStatusRequest ,OpsStockRequestsQuery
 from app.utils.request_params import optional_int
 from app.utils.request_utils import current_user_id, parse_pagination, parse_iso_date
 from app.utils.responses import pagination_envelope, success_envelope
@@ -42,9 +42,14 @@ def _parse_filters() -> tuple[OrderStatus | None, datetime | None, datetime | No
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
 def list_orders():
-    status, date_from, date_to, limit, offset = _parse_filters()
-    orders, total = OpsOrderService.list_orders(status, date_from, date_to, limit, offset)
-    return jsonify(success_envelope(orders, pagination_envelope(total, limit, offset)))
+    try:
+        params = OpsOrdersQuery(**request.args)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 422
+    orders, total = OpsOrderService.list_orders(
+        params.status, params.date_from, params.date_to, params.limit, params.offset
+    )
+    return jsonify(success_envelope(orders, pagination_envelope(total, params.limit, params.offset)))
 
 
 ## READ (Get Order)
@@ -83,11 +88,15 @@ def create_batch():
 @jwt_required()
 @require_role(Role.EMPLOYEE, Role.MANAGER, Role.ADMIN)
 def list_ops_stock_requests():
-    limit, offset = parse_pagination()
-    branch_id = optional_int(request.args, "branchId")
-    status = request.args.get("status")
-    rows, total = StockRequestService.list_ops(branch_id, status, limit, offset)
-    return jsonify(success_envelope(rows, pagination_envelope(total, limit, offset)))
+    
+    try:
+        params = OpsStockRequestsQuery(**request.args)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 422
+    rows, total = StockRequestService.list_ops(
+        params.branch_id, params.status, params.limit, params.offset
+    )
+    return jsonify(success_envelope(rows, pagination_envelope(total, params.limit, params.offset)))
 
 # Endpoint: POST /api/v1/ops/stock-requests
 ## CREATE (Stock Request)
