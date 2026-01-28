@@ -1,0 +1,10 @@
+from pydantic import BaseModel, Field
+from typing import Optional
+
+class ProductSearchQuery(BaseModel):
+    q: Optional[str] = None
+    limit: int = Field(default=50, ge=1, le=200)
+    offset: int = Field(default=0, ge=0)
+    min_price: Optional[float] = Field(default=None, ge=0)
+    max_price: Optional[float] = Field(default=None, ge=0)
+    sort: Optional[str] = Field(default=None, pattern=r"^(price|name|date)$")

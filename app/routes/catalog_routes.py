@@ -43,21 +43,16 @@ def get_product(product_id):
 ## READ (Search Products)
 @blueprint.get("/products/search")
 def search_products():
-    limit = safe_int(request.args, "limit", 50)
-    offset = safe_int(request.args, "offset", 0)
-    query = request.args.get("q")
-    category_id = optional_int(request.args, "categoryId")
-    branch_id = optional_int(request.args, "branchId")
-    in_stock = safe_bool(request.args.get("inStock"))
-    min_price = request.args.get("min_price", type=float)
-    max_price = request.args.get("max_price", type=float)
-    organic_only = safe_bool(request.args.get("organic_only"))
-    sort = request.args.get("sort")
+    from app.schemas.query_params import ProductSearchQuery
+    try:
+        params = ProductSearchQuery(**request.args)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 422
     products, total = CatalogQueryService.search_products(
-        query, category_id, in_stock, branch_id, limit, offset, min_price, max_price, organic_only, sort
+        params.q, None, None, None, params.limit, params.offset, params.min_price, params.max_price, None, params.sort
     )
-    has_next = total > (offset + limit)
-    meta = {"total": total, "limit": limit, "offset": offset, "has_next": has_next}
+    has_next = total > (params.offset + params.limit)
+    meta = {"total": total, "limit": params.limit, "offset": params.offset, "has_next": has_next}
     return jsonify(success_envelope(products, meta))
     
 ## READ (Featured Products)
