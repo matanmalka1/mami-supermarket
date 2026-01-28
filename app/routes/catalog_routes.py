@@ -8,7 +8,7 @@ from flask import Blueprint, jsonify, request
 
 from app.services.catalog_service import CatalogQueryService
 from app.utils.request_params import optional_int, safe_bool, safe_int
-from app.utils.responses import success_envelope
+from app.utils.responses import success_envelope ,error_envelope
 
 blueprint = Blueprint("catalog", __name__)
 
@@ -47,7 +47,13 @@ def search_products():
     try:
         params = ProductSearchQuery(**request.args)
     except Exception as e:
-        return jsonify({"error": str(e)}), 422
+        payload = error_envelope(
+            code="VALIDATION_ERROR",
+            message="Invalid query parameters",
+            status_code=422,
+            details={"error": str(e)}
+        )
+        return jsonify(payload), 422
     products, total = CatalogQueryService.search_products(
         params.q, None, None, None, params.limit, params.offset, params.min_price, params.max_price, None, params.sort
     )

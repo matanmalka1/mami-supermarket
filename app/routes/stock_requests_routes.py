@@ -14,7 +14,7 @@ from app.schemas.stock_requests import (
 from app.schemas.admin_branches_query import AdminStockRequestsQuery
 from app.services.stock_requests_service import StockRequestService
 from app.utils.request_utils import current_user_id, parse_json_or_400, parse_pagination
-from app.utils.responses import pagination_envelope, success_envelope
+from app.utils.responses import pagination_envelope, success_envelope , error_envelope
 
 blueprint = Blueprint("stock_requests", __name__)
 
@@ -44,7 +44,13 @@ def list_admin_requests():
     try:
         params = AdminStockRequestsQuery(**request.args)
     except Exception as e:
-        return jsonify({"error": str(e)}), 422
+        payload = error_envelope(
+            code="VALIDATION_ERROR",
+            message="Invalid query parameters",
+            status_code=422,
+            details={"error": str(e)}
+        )
+        return jsonify(payload), 422
     rows, total = StockRequestService.list_admin(params.status, params.limit, params.offset)
     return jsonify(success_envelope(rows, pagination_envelope(total, params.limit, params.offset)))
 

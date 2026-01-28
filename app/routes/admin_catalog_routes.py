@@ -5,7 +5,7 @@ from app.models.enums import Role
 from app.schemas.catalog import CategoryAdminRequest, ProductAdminRequest, ProductUpdateRequest
 from app.services.catalog_service import CatalogAdminService
 from app.utils.request_params import toggle_flag
-from app.utils.responses import success_envelope
+from app.utils.responses import success_envelope ,error_envelope
 from app.schemas.admin_branches_query import ToggleCategoryQuery
 
 blueprint = Blueprint("admin_catalog", __name__)
@@ -33,7 +33,13 @@ def toggle_category(category_id: int):
     try:
         params = ToggleCategoryQuery(**request.args)
     except Exception as e:
-        return jsonify({"error": str(e)}), 422
+        payload = error_envelope(
+            code="VALIDATION_ERROR",
+            message="Invalid query parameters",
+            status_code=422,
+            details={"error": str(e)}
+        )
+        return jsonify(payload), 422
     category = CatalogAdminService.toggle_category(category_id, params.active)
     return jsonify(success_envelope(category))
 
