@@ -34,6 +34,7 @@ class CheckoutOrderBuilder:
                 quantity=item.quantity,
             )
             db.session.add(order_item)
+        db.session.flush()
         return order
 
     @staticmethod
