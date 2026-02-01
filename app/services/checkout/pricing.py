@@ -17,6 +17,7 @@ class CheckoutPricing:
     @staticmethod
     def calculate(cart: Cart, fulfillment_type: FulfillmentType | None) -> CheckoutTotals:
         cart_total = sum(item.unit_price * item.quantity for item in cart.items)
+   
         if fulfillment_type == FulfillmentType.DELIVERY:
             min_total = Decimal(str(current_app.config.get("DELIVERY_MIN_TOTAL", 150)))
             under_min_fee = Decimal(str(current_app.config.get("DELIVERY_FEE_UNDER_MIN", 30)))
@@ -24,4 +25,5 @@ class CheckoutPricing:
         else:
             delivery_fee = None
         total_amount = cart_total + (delivery_fee or Decimal("0"))
+        
         return CheckoutTotals(cart_total=cart_total, delivery_fee=delivery_fee, total_amount=total_amount)
