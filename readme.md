@@ -33,21 +33,21 @@ The system implements four distinct user roles with hierarchical permissions:
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|-----------|
-| **Language** | Python 3.11+ |
-| **Framework** | Flask 3.1+ |
-| **Database** | PostgreSQL (via SQLAlchemy 2.0) |
-| **ORM** | SQLAlchemy with declarative models |
-| **Migrations** | Alembic |
-| **Authentication** | JWT (Flask-JWT-Extended) |
-| **Validation** | Pydantic 2.x for request/response schemas |
-| **Password Hashing** | Passlib with bcrypt |
-| **Email Service** | Brevo (formerly Sendinblue) for transactional emails |
-| **Rate Limiting** | Flask-Limiter |
-| **Testing** | pytest with coverage reporting |
-| **Environment** | python-dotenv for configuration |
-| **WSGI Server** | Gunicorn (production) |
+| Component            | Technology                                           |
+| -------------------- | ---------------------------------------------------- |
+| **Language**         | Python 3.11+                                         |
+| **Framework**        | Flask 3.1+                                           |
+| **Database**         | PostgreSQL (via SQLAlchemy 2.0)                      |
+| **ORM**              | SQLAlchemy with declarative models                   |
+| **Migrations**       | Alembic                                              |
+| **Authentication**   | JWT (Flask-JWT-Extended)                             |
+| **Validation**       | Pydantic 2.x for request/response schemas            |
+| **Password Hashing** | Passlib with bcrypt                                  |
+| **Email Service**    | Brevo (formerly Sendinblue) for transactional emails |
+| **Rate Limiting**    | Flask-Limiter                                        |
+| **Testing**          | pytest with coverage reporting                       |
+| **Environment**      | python-dotenv for configuration                      |
+| **WSGI Server**      | Gunicorn (production)                                |
 
 ## Architecture Overview
 
@@ -212,6 +212,7 @@ Checkout confirmation implements idempotency to prevent duplicate orders:
 **Request Logging:**
 
 All requests are logged with:
+
 - HTTP method and path
 - Response status code
 - Request duration in milliseconds
@@ -310,8 +311,8 @@ All endpoints are prefixed with `/api/v1/`. Future breaking changes would introd
 ```json
 {
   "data": [
-    {"id": 1, "name": "Product A"},
-    {"id": 2, "name": "Product B"}
+    { "id": 1, "name": "Product A" },
+    { "id": 2, "name": "Product B" }
   ],
   "meta": {
     "total": 50,
@@ -371,21 +372,21 @@ The API uses standard HTTP status codes semantically:
 
 Create a `.env` file in the project root with the following variables:
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `DATABASE_URL` | Yes | - | PostgreSQL connection string (e.g., `postgresql://user:pass@localhost:5432/mami_db`) |
-| `JWT_SECRET_KEY` | Yes | - | Secret key for signing JWT tokens (use strong random value) |
-| `JWT_ACCESS_TOKEN_EXPIRES_MINUTES` | No | 240 | JWT access token expiration in minutes (4 hours default) |
-| `CORS_ALLOWED_ORIGINS` | No | `*` | Comma-separated list of allowed CORS origins (must not be `*` in production) |
-| `FRONTEND_BASE_URL` | No | `http://localhost:5173` | Frontend URL for email links and CORS |
-| `DELIVERY_SOURCE_BRANCH_ID` | Production | - | Branch ID to use as delivery fulfillment source |
-| `BREVO_API_KEY` | Production | - | Brevo API key for sending transactional emails |
-| `BREVO_SENDER_EMAIL` | Production | - | Verified sender email address in Brevo |
-| `BREVO_RESET_TOKEN_OTP_ID` | No | - | Brevo template ID for password reset emails |
-| `BREVO_REGISTER_OTP_ID` | No | - | Brevo template ID for registration OTP emails |
-| `ENABLE_REGISTRATION_OTP` | No | `false` | Enable OTP verification during registration (`true`/`false`) |
-| `APP_ENV` | No | `production` | Environment name (`development`, `production`) |
-| `RATE_LIMIT_DEFAULTS` | No | `200 per day, 50 per hour` | Default rate limit for API endpoints |
+| Variable                           | Required   | Default                    | Description                                                                          |
+| ---------------------------------- | ---------- | -------------------------- | ------------------------------------------------------------------------------------ |
+| `DATABASE_URL`                     | Yes        | -                          | PostgreSQL connection string (e.g., `postgresql://user:pass@localhost:5432/mami_db`) |
+| `JWT_SECRET_KEY`                   | Yes        | -                          | Secret key for signing JWT tokens (use strong random value)                          |
+| `JWT_ACCESS_TOKEN_EXPIRES_MINUTES` | No         | 240                        | JWT access token expiration in minutes (4 hours default)                             |
+| `CORS_ALLOWED_ORIGINS`             | No         | `*`                        | Comma-separated list of allowed CORS origins (must not be `*` in production)         |
+| `FRONTEND_BASE_URL`                | No         | `http://localhost:5173`    | Frontend URL for email links and CORS                                                |
+| `DELIVERY_SOURCE_BRANCH_ID`        | Production | -                          | Branch ID to use as delivery fulfillment source                                      |
+| `BREVO_API_KEY`                    | Production | -                          | Brevo API key for sending transactional emails                                       |
+| `BREVO_SENDER_EMAIL`               | Production | -                          | Verified sender email address in Brevo                                               |
+| `BREVO_RESET_TOKEN_OTP_ID`         | No         | -                          | Brevo template ID for password reset emails                                          |
+| `BREVO_REGISTER_OTP_ID`            | No         | -                          | Brevo template ID for registration OTP emails                                        |
+| `ENABLE_REGISTRATION_OTP`          | No         | `false`                    | Enable OTP verification during registration (`true`/`false`)                         |
+| `APP_ENV`                          | No         | `production`               | Environment name (`development`, `production`)                                       |
+| `RATE_LIMIT_DEFAULTS`              | No         | `200 per day, 50 per hour` | Default rate limit for API endpoints                                                 |
 
 ### Security Notes
 
@@ -456,6 +457,7 @@ python scripts/seed/seed_initial_data.py
 ```
 
 Seed scripts typically create:
+
 - Initial admin user
 - Sample branches and delivery slots
 - Product categories
@@ -556,16 +558,16 @@ FLASK_APP=app flask run --reload
 
 ### Common Dev Commands
 
-| Command | Description |
-|---------|-------------|
-| `python run.py` | Start development server |
-| `alembic upgrade head` | Apply all pending migrations |
-| `alembic revision --autogenerate -m "message"` | Create new migration |
-| `pytest` | Run all tests |
-| `pytest tests/auth/` | Run specific test module |
-| `pytest --cov=app` | Run tests with coverage report |
-| `ruff check .` | Run linter (if ruff configured) |
-| `python -m flask shell` | Open Flask shell for debugging |
+| Command                                        | Description                     |
+| ---------------------------------------------- | ------------------------------- |
+| `python run.py`                                | Start development server        |
+| `alembic upgrade head`                         | Apply all pending migrations    |
+| `alembic revision --autogenerate -m "message"` | Create new migration            |
+| `pytest`                                       | Run all tests                   |
+| `pytest tests/auth/`                           | Run specific test module        |
+| `pytest --cov=app`                             | Run tests with coverage report  |
+| `ruff check .`                                 | Run linter (if ruff configured) |
+| `python -m flask shell`                        | Open Flask shell for debugging  |
 
 ## Testing
 
@@ -682,21 +684,21 @@ gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 wsgi:app
 
 ### Things to Configure Before Production
 
-| Configuration | Action Required |
-|---------------|----------------|
-| `DATABASE_URL` | Set to production PostgreSQL connection string (with SSL) |
-| `JWT_SECRET_KEY` | Generate secure random key (never reuse dev key) |
-| `CORS_ALLOWED_ORIGINS` | Set to production frontend URL(s) |
-| `BREVO_API_KEY` | Set production Brevo API key |
-| `BREVO_SENDER_EMAIL` | Use verified production sender email |
-| `DELIVERY_SOURCE_BRANCH_ID` | Set to production branch ID |
-| `APP_ENV` | Set to `production` |
-| Database Migrations | Run `alembic upgrade head` on production database |
-| Initial Data | Run seed scripts to create initial admin user and branches |
-| Monitoring | Set up application monitoring (Sentry, Datadog, etc.) |
-| Logging | Configure log aggregation (CloudWatch, ELK, etc.) |
-| Backups | Enable automated database backups |
-| Health Checks | Configure platform health check to `/api/v1/health` |
+| Configuration               | Action Required                                            |
+| --------------------------- | ---------------------------------------------------------- |
+| `DATABASE_URL`              | Set to production PostgreSQL connection string (with SSL)  |
+| `JWT_SECRET_KEY`            | Generate secure random key (never reuse dev key)           |
+| `CORS_ALLOWED_ORIGINS`      | Set to production frontend URL(s)                          |
+| `BREVO_API_KEY`             | Set production Brevo API key                               |
+| `BREVO_SENDER_EMAIL`        | Use verified production sender email                       |
+| `DELIVERY_SOURCE_BRANCH_ID` | Set to production branch ID                                |
+| `APP_ENV`                   | Set to `production`                                        |
+| Database Migrations         | Run `alembic upgrade head` on production database          |
+| Initial Data                | Run seed scripts to create initial admin user and branches |
+| Monitoring                  | Set up application monitoring (Sentry, Datadog, etc.)      |
+| Logging                     | Configure log aggregation (CloudWatch, ELK, etc.)          |
+| Backups                     | Enable automated database backups                          |
+| Health Checks               | Configure platform health check to `/api/v1/health`        |
 
 **Deployment Checklist:**
 

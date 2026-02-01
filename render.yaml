@@ -36,9 +36,9 @@ services:
     repo: https://github.com/matanmalka1/mami-supermarket-frontend.git
     rootDir: mami-supermarket-frontend
 
-  - type: postgres
-    name: mami-supermarket-db
+databases:
+  - name: mami-supermarket-db
     plan: free
     ipAllowList:
-      - cidr: 109.186.45.209/32  
+      - cidr: 109.186.45.209/32
         description: Home Office
