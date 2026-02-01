@@ -24,6 +24,7 @@ class RegisterRequest(DefaultModel):
         validate_password_complexity(v)
         return v
     full_name: str = Field(min_length=2, max_length=50, pattern=r"^[A-Za-zא-ת\s\-']+$")
+    phone: str | None = Field(default=None, min_length=9, max_length=13)
     role: Role = Role.CUSTOMER
 
 class LoginRequest(DefaultModel):

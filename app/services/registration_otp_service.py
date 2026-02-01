@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models.registration_otp import RegistrationOTP
+from app.models.user import User
 from app.services.email_service import send_register_otp_email
 
 
@@ -33,6 +34,16 @@ class RegistrationOTPService:
         cls._ensure_table_exists()
         normalized = cls._normalize_email(email)
         session = db.session
+        
+        # Check if user already exists
+        existing_user = session.query(User).filter_by(email=normalized).first()
+        if existing_user:
+            raise DomainError(
+                "USER_ALREADY_EXISTS",
+                "An account with this email already exists",
+                status_code=409,
+            )
+        
         session.query(RegistrationOTP).filter_by(email=normalized).delete(
             synchronize_session=False
         )

@@ -36,6 +36,7 @@ class AuthService:
         user = User(
             email=data.email,
             full_name=data.full_name,
+            phone=data.phone,
             password_hash=hash_password(data.password),
             role=data.role,
         )
