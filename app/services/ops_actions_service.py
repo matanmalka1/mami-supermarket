@@ -5,20 +5,6 @@ from app.services.audit_service import AuditService
 
 class OpsActionsService:
     @staticmethod
-    def sync_order(order_id: int, user_id: int):
-        order = db.session.get(Order, order_id)
-        if not order:
-            raise DomainError("NOT_FOUND", "Order not found", status_code=404)
-        AuditService.log_event(
-            entity_type="order",
-            action="SYNC",
-            actor_user_id=user_id,
-            entity_id=order_id,
-            context={"status": order.status.value},
-        )
-        return {"synced": True}
-
-    @staticmethod
     def report_damage(order_id: int, item_id: int, payload, user_id: int):
         order = db.session.get(Order, order_id)
         if not order:

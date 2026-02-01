@@ -36,6 +36,8 @@ def to_response(cart: Cart) -> CartResponse:
             product_id=item.product_id,
             quantity=item.quantity,
             unit_price=Decimal(item.unit_price),
+            product_name=item.product.name if item.product else None,
+            product_image=item.product.image_url if item.product else None,
         )
         for item in cart.items
     ]

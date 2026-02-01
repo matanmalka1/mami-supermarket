@@ -20,7 +20,9 @@ from app.models import Base
 config = context.config
 fileConfig(config.config_file_name)
 
-config.set_main_option("sqlalchemy.url", AppConfig().DATABASE_URL)
+# Set sqlalchemy.url without interpolation issues
+db_url = AppConfig().DATABASE_URL
+config.set_main_option("sqlalchemy.url", db_url.replace('%', '%%'))
 
 target_metadata = Base.metadata
 

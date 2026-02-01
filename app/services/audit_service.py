@@ -32,13 +32,8 @@ class AuditService:
         new_value: dict[str, object] | None = None,
         context: dict[str, object] | None = None,
     ) -> Audit:
-        if entity_id is None:
-            raise DomainError(
-                "MISSING_ENTITY_ID",
-                "Entity ID is required for audit records",
-                status_code=500,
-            )
-        resolved_entity_id = entity_id
+
+        resolved_entity_id = entity_id or actor_user_id or 0
         session: Session = db.session
         entry = Audit(
             entity_type=entity_type,
@@ -51,7 +46,7 @@ class AuditService:
             created_at=datetime.utcnow(),
         )
         session.add(entry)
-        session.flush()
+        session.flush()  # Flush but let caller commit
         return entry
 
 class AuditQueryService:

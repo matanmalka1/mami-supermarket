@@ -5,10 +5,8 @@ from __future__ import annotations
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required
 from app.schemas.profile import (
-    AddressLocationRequest,
     AddressRequest,
     AddressUpdateRequest,
-    MembershipRequest,
     UpdatePhoneRequest,
     UpdateProfileRequest,
 )
@@ -82,17 +80,6 @@ def update_address(address_id: int):
     return jsonify(success_envelope(address.model_dump()))
 
 
-## UPDATE (Address Location)
-@blueprint.patch("/addresses/<int:address_id>/location")
-@jwt_required()
-def update_address_location(address_id: int):
-    """Update GPS tags for an address."""
-    user_id = current_user_id()
-    payload = AddressLocationRequest.model_validate(parse_json_or_400())
-    address = AddressService.update_location(user_id, address_id, payload)
-    return jsonify(success_envelope(address.model_dump()))
-
-
 ## DELETE (Address)
 @blueprint.delete("/addresses/<int:address_id>")
 @jwt_required()
@@ -111,13 +98,3 @@ def set_default_address(address_id: int):
     user_id = current_user_id()
     address = AddressService.set_default_address(user_id, address_id)
     return jsonify(success_envelope(address.model_dump()))
-
-
-## UPDATE (Membership)
-@blueprint.post("/membership")
-@jwt_required()
-def set_membership():
-    """Update the user's membership tier."""
-    payload = MembershipRequest.model_validate(parse_json_or_400())
-    tier = ProfileService.update_membership(current_user_id(), payload.tier)
-    return jsonify(success_envelope({"tier": tier.value}))

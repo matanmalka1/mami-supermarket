@@ -13,6 +13,8 @@ class CartItemResponse(DefaultModel):
     product_id: int = Field(gt=0)
     quantity: int = Field(gt=0, le=10000)
     unit_price: Decimal = Field(ge=0, le=100000)
+    product_name: str | None = None
+    product_image: str | None = None
 
 class CartResponse(DefaultModel):
     id: int = Field(gt=0)

@@ -5,6 +5,7 @@ from .branch import Branch
 from .cart import Cart, CartItem
 from .category import Category
 from .delivery_slot import DeliverySlot
+from .global_settings import GlobalSettings
 from .idempotency_key import IdempotencyKey
 from .inventory import Inventory
 from .order import Order, OrderDeliveryDetails, OrderItem, OrderPickupDetails
@@ -35,6 +36,7 @@ __all__ = [
     "CartItem",
     "Category",
     "DeliverySlot",
+    "GlobalSettings",
     "IdempotencyKey",
     "Inventory",
     "Order",

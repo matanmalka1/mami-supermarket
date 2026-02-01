@@ -15,17 +15,6 @@ from app.services.ops_actions_service import OpsActionsService
 blueprint = Blueprint("ops_actions", __name__)
 
 
-## UPDATE (Sync Order)
-
-@blueprint.post("/orders/<int:order_id>/sync")
-@jwt_required()
-@require_role(Role.ADMIN)
-def sync_order(order_id: int):
-    user_id = current_user_id()
-    result = OpsActionsService.sync_order(order_id, user_id)
-    return jsonify(success_envelope(result))
-
-
 ## CREATE (Report Damage)
 
 @blueprint.post("/orders/<int:order_id>/items/<int:item_id>/report-damage")

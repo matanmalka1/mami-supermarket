@@ -7,6 +7,7 @@ from flask_jwt_extended import jwt_required
 
 from app.schemas.cart import CartItemUpsertRequest
 from app.services.cart_service import CartService
+from app.services.cart import helpers
 from app.utils.request_utils import current_user_id, parse_json_or_400
 from app.utils.responses import success_envelope
 
@@ -38,7 +39,7 @@ def add_item():
 def update_item(item_id: int):
     user_id = current_user_id()
     payload = CartItemUpsertRequest.model_validate(parse_json_or_400())
-    cart_id = CartService.get_or_create_cart(user_id).id
+    cart_id = helpers.get_or_create_cart(user_id).id
     cart = CartService.update_item(user_id, cart_id, item_id, payload.quantity)
     return jsonify(success_envelope(cart))
 
@@ -48,7 +49,8 @@ def update_item(item_id: int):
 @jwt_required()
 def delete_item(item_id: int):
     user_id = current_user_id()
-    cart = CartService.delete_item(user_id, CartService.get_or_create_cart(user_id).id, item_id)
+    cart_id = helpers.get_or_create_cart(user_id).id
+    cart = CartService.delete_item(user_id, cart_id, item_id)
     return jsonify(success_envelope(cart))
 
 ## DELETE (Clear Cart)
@@ -56,5 +58,6 @@ def delete_item(item_id: int):
 @jwt_required()
 def clear_cart():
     user_id = current_user_id()
-    cart = CartService.clear_cart(user_id, CartService.get_or_create_cart(user_id).id)
+    cart_id = helpers.get_or_create_cart(user_id).id
+    cart = CartService.clear_cart(user_id, cart_id)
     return jsonify(success_envelope(cart))

@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 from ....extensions import db
+from ....middleware.error_handler import DomainError
 from ....models import Address
 from ....schemas.profile import (
     AddressLocationRequest,
@@ -46,11 +47,21 @@ class AddressService:
             is_default=data.is_default,
         )
         db.session.add(address)
-        commit_with_audit(
-            user_id,
-            address.id,
+        db.session.flush() 
+        db.session.refresh(address) 
+        
+ 
+        try:
+            db.session.commit()
+        except Exception as exc:
+            db.session.rollback()
+            raise DomainError("DATABASE_ERROR", "Could not create address", details={"error": str(exc)})
+        
+        AuditService.log_event(
+            entity_type=ENTITY_TYPE,
             action="CREATE",
-            error_message="Could not create address",
+            actor_user_id=user_id,
+            entity_id=address.id,
             new_value={
                 "address_line": data.address_line,
                 "city": data.city,

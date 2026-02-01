@@ -7,6 +7,19 @@ from app.models.enums import OrderStatus
 class AdminAnalyticsService:
     @staticmethod
     def get_revenue(range_: str = "30d", granularity: str = None):
+        """
+        Calculate revenue over time based on DELIVERED orders only.
+        
+        Note: Only orders with status DELIVERED are counted as revenue.
+        Pending, in-progress, or cancelled orders are excluded.
+        
+        Args:
+            range_: Time range - "30d", "90d", or "12m"
+            granularity: "day" or "month" (auto-determined if not provided)
+        
+        Returns:
+            Dict with labels (dates) and values (revenue amounts)
+        """
         now = datetime.utcnow()
         if range_ == "12m":
             start = now.replace(day=1, month=now.month, year=now.year) - timedelta(days=365)
@@ -29,13 +42,17 @@ class AdminAnalyticsService:
 
         is_sqlite = hasattr(db, 'engine') and db.engine and db.engine.dialect.name == "sqlite"
         created_at = RevenueTable.c.created_at
+        
+        # Use database-agnostic date truncation where possible
         if is_sqlite:
+            # SQLite requires strftime
             label_expr = (
                 func.strftime('%Y-%m', created_at)
                 if gran == "month"
                 else func.strftime('%Y-%m-%d', created_at)
             )
         else:
+            # PostgreSQL and others support date_trunc
             if gran == "month":
                 label_expr = func.to_char(
                     func.date_trunc('month', created_at),

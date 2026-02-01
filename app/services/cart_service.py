@@ -95,8 +95,8 @@ class CartService:
         if not item or item.cart_id != cart.id:
             raise DomainError("NOT_FOUND", "Cart item not found", status_code=404)
         db.session.delete(item)
-        db.session.commit()
         CartService._audit(cart.id, "DELETE_ITEM", user_id, old_value={"item_id": str(item_id)})
+        db.session.commit()
         return helpers.to_response(helpers.reload_cart(cart.id))
     
     @staticmethod
