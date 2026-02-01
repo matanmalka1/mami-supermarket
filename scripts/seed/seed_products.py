@@ -1,7 +1,8 @@
 # seed/seed_products.py
 from __future__ import annotations
 
-import random, re
+import random
+import re
 from decimal import Decimal
 from urllib.parse import quote
 

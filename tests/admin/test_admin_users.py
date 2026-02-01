@@ -78,7 +78,7 @@ class TestGetUser:
         admin = create_user_with_role(role=Role.ADMIN)
         with test_app.test_client() as client:
             response = client.get(
-                f"/api/v1/admin/users/9999",
+                "/api/v1/admin/users/9999",
                 headers=auth_header(admin),
             )
             assert response.status_code == 404

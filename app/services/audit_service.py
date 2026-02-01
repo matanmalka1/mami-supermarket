@@ -6,7 +6,6 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.orm import Session
 
 from ..extensions import db
-from ..middleware.error_handler import DomainError
 from ..models import Audit
 
 class AuditService:

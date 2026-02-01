@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from ...extensions import db
-from ...models import Cart, CartItem
+from ...models import Cart
 from ...schemas.cart import CartItemResponse, CartResponse
 
 def get_or_create_cart(user_id: int) -> Cart:

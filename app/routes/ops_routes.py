@@ -21,7 +21,7 @@ from app.services.ops.custom_ops_service import (
 )
 from app.services.stock_requests import StockRequestEmployeeService, StockRequestReviewService
 from app.schemas.stock_requests import StockRequestCreateRequest
-from app.utils.request_utils import current_user_id, parse_pagination
+from app.utils.request_utils import current_user_id
 from app.utils.responses import pagination_envelope, success_envelope
 
 blueprint = Blueprint("ops", __name__)

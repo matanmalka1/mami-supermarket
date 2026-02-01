@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, current_app, request
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from app.middleware.auth import require_role
 from app.models.enums import Role

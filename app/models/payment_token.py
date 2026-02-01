@@ -1,6 +1,6 @@
 from __future__ import annotations
 import sqlalchemy as sa
-from sqlalchemy import Boolean, Column, ForeignKey, JSON, String, Integer
+from sqlalchemy import Boolean, Column, ForeignKey, String, Integer
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
