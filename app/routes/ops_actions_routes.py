@@ -5,7 +5,6 @@ from __future__ import annotations
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
-
 from app.middleware.auth import require_role
 from app.models.enums import Role
 from app.schemas.ops import DamageReportRequest
@@ -37,13 +36,3 @@ def report_damage(order_id: int, item_id: int):
     user_id = current_user_id()
     result = OpsActionsService.report_damage(order_id, item_id, payload, user_id)
     return jsonify(success_envelope(result)), 201
-
-
-## READ (Map View)
-
-@blueprint.get("/map")
-@jwt_required()
-@require_role(Role.ADMIN)
-def map_view():
-    result = OpsActionsService.get_map_view()
-    return jsonify(success_envelope(result))

@@ -1,5 +1,5 @@
 from app.extensions import db
-from app.models import Branch, Order, OrderItem
+from app.models import Order, OrderItem
 from app.middleware.error_handler import DomainError
 from app.services.audit_service import AuditService
 
@@ -41,23 +41,3 @@ class OpsActionsService:
             },
         )
         return {"reported": True}
-
-    @staticmethod
-    def get_map_view():
-        branches = (
-            db.session.query(Branch)
-            .filter_by(is_active=True)
-            .order_by(Branch.name.asc())
-            .all()
-        )
-        branch_rows = []
-        for branch in branches:
-            branch_rows.append(
-                {
-                    "id": str(branch.id),
-                    "name": branch.name,
-                    "lat": getattr(branch, "latitude", None),
-                    "lng": getattr(branch, "longitude", None),
-                }
-            )
-        return {"branches": branch_rows, "bins": []}
