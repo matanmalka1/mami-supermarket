@@ -1,16 +1,11 @@
 from __future__ import annotations
 
-from decimal import Decimal
-from flask import current_app
-from sqlalchemy import select, func
-from sqlalchemy.orm import selectinload
-
 from ..extensions import db
 from ..middleware.error_handler import DomainError
-from ..models import Cart, CartItem, Inventory, Product
-from ..schemas.cart import CartItemResponse, CartResponse
+from ..models import Cart, CartItem
+from ..schemas.cart import CartResponse
 from ..services.audit_service import AuditService
-from ..services.branch import BranchCoreService
+from .cart import helpers, validators
 
 
 class CartService:
@@ -25,29 +20,25 @@ class CartService:
         )
     
     @staticmethod
-    def get_or_create_cart(user_id: int) -> Cart:
-        cart = db.session.query(Cart).options(selectinload(Cart.items)).filter_by(user_id=user_id).first()
-        if cart is None:
-            cart = Cart(user_id=user_id)
-            db.session.add(cart)
-            db.session.commit()
-        return cart
-    
-    @staticmethod
     def get_cart(user_id: int) -> CartResponse:
-        return CartService._to_response(CartService.get_or_create_cart(user_id))
+        """Get user's cart."""
+        cart = helpers.get_or_create_cart(user_id)
+        return helpers.to_response(cart)
 
     @staticmethod
     def add_item(user_id: int, product_id: int, quantity: int) -> CartResponse:
+        """Add item to cart."""
         if quantity <= 0:
             raise DomainError("INVALID_QUANTITY", "Quantity must be positive")
         
-        product = CartService._validate_product(product_id)
-        CartService._assert_in_stock_anywhere(product)
-        cart = CartService.get_or_create_cart(user_id)
+        product = validators.validate_product(product_id)
+        validators.assert_in_stock_anywhere(product)
+        
+        cart = helpers.get_or_create_cart(user_id)
         existing = next((i for i in cart.items if i.product_id == product_id), None)
         requested_quantity = quantity + existing.quantity if existing else quantity
-        CartService._assert_in_stock_delivery_branch(product, requested_quantity)
+        validators.assert_in_stock_delivery_branch(product, requested_quantity)
+        
         if existing:
             existing.quantity += quantity
             existing.unit_price = product.price
@@ -62,11 +53,9 @@ class CartService:
             db.session.add(item)
         db.session.commit()
 
-        CartService._audit(cart.id, "ADD_ITEM", user_id, new_value={"product_id": str(product_id), "quantity": quantity})
-        return CartService._to_response(CartService._reload_cart(cart.id))
-    
-    @staticmethod
-    def update_item(user_id: int, cart_id: int, item_id: int, quantity: int) -> CartResponse:
+        CartService._audit(
+            cart.id, "ADD_ITEM", user_id,
+        """Update cart item quantity."""
         if quantity <= 0:
             raise DomainError("INVALID_QUANTITY", "Quantity must be positive")
         
@@ -76,9 +65,9 @@ class CartService:
         if not item or item.cart_id != cart.id:
             raise DomainError("NOT_FOUND", "Cart item not found", status_code=404)
         
-        product = CartService._validate_product(item.product_id)
-        CartService._assert_in_stock_anywhere(product)
-        CartService._assert_in_stock_delivery_branch(product, quantity)
+        product = validators.validate_product(item.product_id)
+        validators.assert_in_stock_anywhere(product)
+        validators.assert_in_stock_delivery_branch(product, quantity)
 
         old_qty = item.quantity
         item.quantity = quantity
@@ -86,7 +75,11 @@ class CartService:
         db.session.commit()
 
         CartService._audit(
-            cart.id,
+            cart.id, "UPDATE_ITEM", user_id,
+            old_value={"item_id": str(item_id), "quantity": old_qty},
+            new_value={"item_id": str(item_id), "quantity": quantity},
+        )
+        return helpers.to_response(helpers.
             "UPDATE_ITEM",
             user_id,
             old_value={"item_id": str(item_id), "quantity": old_qty},
@@ -97,77 +90,30 @@ class CartService:
     @staticmethod
     def delete_item(user_id: int, cart_id: int, item_id: int) -> CartResponse:
         cart = CartService._get_cart_for_user(cart_id, user_id)
+        """Delete cart item."""
+        cart = CartService._get_cart_for_user(cart_id, user_id)
         item = db.session.get(CartItem, item_id)
         if not item or item.cart_id != cart.id:
             raise DomainError("NOT_FOUND", "Cart item not found", status_code=404)
         db.session.delete(item)
         db.session.commit()
         CartService._audit(cart.id, "DELETE_ITEM", user_id, old_value={"item_id": str(item_id)})
-        return CartService._to_response(CartService._reload_cart(cart.id))
+        return helpers.to_response(helpers.reload_cart(cart.id))
     
     @staticmethod
     def clear_cart(user_id: int, cart_id: int) -> CartResponse:
+        """Clear all items from cart."""
         cart = CartService._get_cart_for_user(cart_id, user_id)
         for item in list(cart.items):
             db.session.delete(item)
         db.session.commit()
         CartService._audit(cart.id, "CLEAR", user_id)
-        return CartService._to_response(CartService._reload_cart(cart.id))
+        return helpers.to_response(helpers.reload_cart(cart.id))
     
-    @staticmethod
-    def _validate_product(product_id: int) -> Product:
-        product = db.session.get(Product, product_id)
-        if not product or not product.is_active:
-            raise DomainError("PRODUCT_INACTIVE", "Product is inactive or missing", status_code=404)
-        return product
-    
-    @staticmethod
-    def _assert_in_stock_anywhere(product: Product) -> None:
-        total_available = db.session.scalar(select(func.coalesce(func.sum(Inventory.available_quantity), 0)).where(Inventory.product_id == product.id))
-        if total_available is None or total_available <= 0:
-            raise DomainError("OUT_OF_STOCK_ANYWHERE", "Product is out of stock")
-
-    @staticmethod
-    def _assert_in_stock_delivery_branch(product: Product, required_quantity: int) -> None:
-        branch_id = CartService._delivery_source_branch_id()
-        branch_available = db.session.scalar(
-            select(func.coalesce(func.sum(Inventory.available_quantity), 0))
-            .where(Inventory.product_id == product.id, Inventory.branch_id == branch_id)
-        )
-        if branch_available is None or branch_available < required_quantity:
-            raise DomainError(
-                "OUT_OF_STOCK_DELIVERY_BRANCH",
-                "Product is out of stock in the delivery warehouse",
-                status_code=409,
-            )
-
-    @staticmethod
-    def _delivery_source_branch_id() -> int:
-        source_id = current_app.config.get("DELIVERY_SOURCE_BRANCH_ID", "")
-        branch = BranchCoreService.ensure_delivery_source_branch_exists(source_id)
-        return branch.id
-        
     @staticmethod
     def _get_cart_for_user(cart_id: int, user_id: int) -> Cart:
+        """Get cart and verify ownership."""
         cart = db.session.get(Cart, cart_id)
         if not cart or cart.user_id != user_id:
             raise DomainError("NOT_FOUND", "Cart not found", status_code=404)
         return cart
-    
-    @staticmethod
-    def _reload_cart(cart_id: int) -> Cart:
-        return db.session.execute(select(Cart).where(Cart.id == cart_id).options(selectinload(Cart.items))).scalar_one()
-
-    @staticmethod
-    def _to_response(cart: Cart) -> CartResponse:
-        items = [
-            CartItemResponse(
-                id=item.id,
-                product_id=item.product_id,
-                quantity=item.quantity,
-                unit_price=Decimal(item.unit_price),
-            )
-            for item in cart.items
-        ]
-        total = sum(item.unit_price * item.quantity for item in items)
-        return CartResponse(id=cart.id, user_id=cart.user_id, total_amount=total, items=items)

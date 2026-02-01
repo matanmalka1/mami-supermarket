@@ -1,0 +1,124 @@
+"""Product admin operations."""
+
+from __future__ import annotations
+from sqlalchemy.exc import IntegrityError
+
+from app.extensions import db
+from app.middleware.error_handler import DomainError
+from app.models import Category, Product
+from app.schemas.catalog import ProductResponse
+from app.services.audit_service import AuditService
+from .mappers import to_product_response
+
+
+def create_product(
+    name: str,
+    sku: str,
+    price: str,
+    category_id: int,
+    description: str | None,
+) -> ProductResponse:
+    """Create a new product."""
+    category = db.session.get(Category, category_id)
+    if not category:
+        raise DomainError("NOT_FOUND", "Category not found", status_code=404)
+    
+    product = Product(
+        name=name,
+        sku=sku,
+        price=price,
+        description=description,
+        category_id=category_id,
+    )
+    
+    try:
+        db.session.add(product)
+        db.session.commit()
+    except IntegrityError as exc:
+        db.session.rollback()
+        if "unique constraint" in str(exc).lower() or "unique" in str(exc).lower():
+            raise DomainError(
+                "DUPLICATE_SKU",
+                "A product with this SKU already exists.",
+                details={"error": str(exc)},
+            ) from exc
+        raise DomainError(
+            "DATABASE_ERROR",
+            "Could not create product",
+            details={"error": str(exc)},
+        ) from exc
+    
+    AuditService.log_event(
+        entity_type="product", action="CREATE", entity_id=product.id
+    )
+    return to_product_response(product, None)
+
+
+def update_product(
+    product_id: int,
+    name: str | None,
+    sku: str | None,
+    price: str | None,
+    category_id: int | None,
+    description: str | None,
+) -> ProductResponse:
+    """Update an existing product."""
+    product = db.session.get(Product, product_id)
+    if not product:
+        raise DomainError("NOT_FOUND", "Product not found", status_code=404)
+    
+    old_value = {
+        "name": product.name,
+        "sku": product.sku,
+        "price": str(product.price),
+        "category_id": product.category_id,
+        "description": product.description,
+    }
+    
+    if name:
+        product.name = name
+    if sku:
+        product.sku = sku
+    if price:
+        product.price = price
+    if category_id:
+        product.category_id = category_id
+    if description is not None:
+        product.description = description
+    
+    db.session.add(product)
+    db.session.commit()
+    
+    AuditService.log_event(
+        entity_type="product",
+        action="UPDATE",
+        entity_id=product.id,
+        old_value=old_value,
+        new_value={
+            "name": product.name,
+            "sku": product.sku,
+            "price": str(product.price),
+            "category_id": product.category_id,
+            "description": product.description,
+        },
+    )
+    return to_product_response(product, None)
+
+
+def toggle_product(product_id: int, active: bool) -> ProductResponse:
+    """Toggle product active status."""
+    product = db.session.get(Product, product_id)
+    if not product:
+        raise DomainError("NOT_FOUND", "Product not found", status_code=404)
+    
+    product.is_active = active
+    db.session.add(product)
+    db.session.commit()
+    
+    AuditService.log_event(
+        entity_type="product",
+        action="DEACTIVATE" if not active else "ACTIVATE",
+        entity_id=product.id,
+        new_value={"is_active": active},
+    )
+    return to_product_response(product, None)
