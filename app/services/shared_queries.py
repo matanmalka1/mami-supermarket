@@ -7,7 +7,6 @@ from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import User, Address
 from app.schemas.profile import UserProfileResponse
-from app.services.audit_service import AuditService
 
 class SharedQueries:
     """Common database queries used across multiple services."""
@@ -59,6 +58,8 @@ class SharedOperations:
         new_value: dict | None = None,
         error_message: str = "Database operation failed",
     ) -> None:
+        from app.services.audit_service import AuditService
+        
         try:
             db.session.commit()
             AuditService.log_event(
