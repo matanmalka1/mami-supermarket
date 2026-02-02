@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 from ..extensions import db
 from ..models import Audit
 
+from app.services.shared_queries import SharedOperations
+
 class AuditService:
     @staticmethod
     def _serialize_for_json(value):
@@ -51,20 +53,47 @@ class AuditService:
 class AuditQueryService:
     @staticmethod
     def list_logs(filters: dict, limit: int, offset: int) -> tuple[list[dict], int]:
+        from app.services.shared_queries import SharedOperations
+        
         stmt = select(Audit).options(selectinload(Audit.actor)).order_by(Audit.created_at.desc())
-        if filters.get("entity_type"):
-            stmt = stmt.where(Audit.entity_type == filters["entity_type"])
-        if filters.get("action"):
-            stmt = stmt.where(Audit.action == filters["action"])
-        if filters.get("actor_user_id"):
-            stmt = stmt.where(Audit.actor_user_id == filters["actor_user_id"])
-        if filters.get("date_from"):
-            stmt = stmt.where(Audit.created_at >= filters["date_from"])
-        if filters.get("date_to"):
-            stmt = stmt.where(Audit.created_at <= filters["date_to"])
-        total = db.session.scalar(select(func.count()).select_from(stmt.subquery()))
-        rows = db.session.execute(stmt.offset(offset).limit(limit)).scalars().all()
-        return [AuditQueryService._to_dict(row) for row in rows], total or 0
+        
+        # Build conditions for filtering
+        conditions = {
+            "entity_type": (
+                lambda: bool(filters.get("entity_type")),
+                Audit.entity_type == filters["entity_type"] if filters.get("entity_type") else None,
+            ),
+            "action": (
+                lambda: bool(filters.get("action")),
+                Audit.action == filters["action"] if filters.get("action") else None,
+            ),
+            "actor_user_id": (
+                lambda: filters.get("actor_user_id") is not None,
+                Audit.actor_user_id == filters["actor_user_id"] if filters.get("actor_user_id") is not None else None,
+            ),
+            "date_from": (
+                lambda: filters.get("date_from") is not None,
+                Audit.created_at >= filters["date_from"] if filters.get("date_from") is not None else None,
+            ),
+            "date_to": (
+                lambda: filters.get("date_to") is not None,
+                Audit.created_at <= filters["date_to"] if filters.get("date_to") is not None else None,
+            ),
+        }
+        
+        stmt = SharedOperations.build_filtered_query(stmt, conditions)
+        
+        def transform(row):
+            return AuditQueryService._to_dict(row)
+        
+        rows, total = SharedOperations.paginate_query(
+            base_query=stmt,
+            model_class=Audit,
+            limit=limit,
+            offset=offset,
+            transform_fn=transform,
+        )
+        return rows, total
 
     @staticmethod
     def _to_dict(row: Audit) -> dict:

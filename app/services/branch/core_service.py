@@ -4,6 +4,7 @@ from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import Branch
 from app.schemas.branches import BranchResponse
+from app.services.shared_queries import SharedOperations
 from app.services.audit_service import AuditService
 
 
@@ -40,14 +41,19 @@ class BranchCoreService:
         stmt = (
             select(Branch)
             .where(Branch.is_active.is_(True))
-            .offset(offset)
-            .limit(limit)
         )
-        branches = db.session.execute(stmt).scalars().all()
-        total = db.session.scalar(
-            select(func.count()).select_from(Branch).where(Branch.is_active.is_(True))
+        
+        def transform(branch):
+            return BranchResponse(id=branch.id, name=branch.name, address=branch.address, is_active=branch.is_active)
+        
+        branches, total = SharedOperations.paginate_query(
+            base_query=stmt,
+            model_class=Branch,
+            limit=limit,
+            offset=offset,
+            transform_fn=transform,
         )
-        return ([BranchResponse(id=b.id, name=b.name, address=b.address, is_active=b.is_active) for b in branches], total or 0)
+        return branches, total
 
     @staticmethod
     def create_branch(name: str, address: str) -> BranchResponse:

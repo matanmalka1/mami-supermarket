@@ -8,7 +8,7 @@ from app.extensions import db
 from app.middleware.error_handler import DomainError
 from app.models import User
 from app.schemas.users import UserDetailResponse, UpdateUserRequest
-from app.services.audit_service import AuditService
+from app.services.shared_queries import SharedOperations
 
 
 def update_user(user_id: int, payload: UpdateUserRequest) -> UserDetailResponse:
@@ -58,16 +58,17 @@ def update_user(user_id: int, payload: UpdateUserRequest) -> UserDetailResponse:
     
     # Log audit if changes were made
     if old_values:
-        AuditService.log_event(
+        SharedOperations.commit_with_audit(
             entity_type="User",
-            entity_id=user.id,
             action="USER_UPDATED",
+            entity_id=user.id,
             actor_user_id=int(current_user_id),
             old_value=old_values,
             new_value=new_values,
+            error_message="Could not update user",
         )
-    
-    db.session.commit()
+    else:
+        db.session.commit()
     
     return UserDetailResponse(
         id=user.id,
@@ -106,15 +107,16 @@ def toggle_user(user_id: int, active: bool) -> UserDetailResponse:
         new_value = {"is_active": active}
         user.is_active = active
         
-        AuditService.log_event(
+        SharedOperations.commit_with_audit(
             entity_type="User",
-            entity_id=user.id,
             action="USER_TOGGLED",
+            entity_id=user.id,
             actor_user_id=int(current_user_id),
             old_value=old_value,
             new_value=new_value,
+            error_message="Could not toggle user status",
         )
-        
+    else:
         db.session.commit()
     
     return UserDetailResponse(

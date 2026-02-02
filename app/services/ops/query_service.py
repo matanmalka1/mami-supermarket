@@ -9,6 +9,7 @@ from app.middleware.error_handler import DomainError
 from app.models import Order, OrderDeliveryDetails
 from app.schemas.ops import OpsOrderResponse
 from app.schemas.orders import OrderResponse
+from app.services.shared_queries import SharedOperations
 from .mappers import to_detail, to_ops_response
 
 
@@ -21,27 +22,44 @@ class OpsOrderQueryService:
         limit: int,
         offset: int,
     ) -> tuple[list[OpsOrderResponse], int]:
-        base = select(Order)
-        stmt = base.options(
+        stmt = select(Order).options(
             selectinload(Order.items),
             selectinload(Order.user),
             selectinload(Order.delivery).selectinload(OrderDeliveryDetails.delivery_slot),
         )
-        if status:
-            base = base.where(Order.status == status)
-            stmt = stmt.where(Order.status == status)
-        if date_from:
-            base = base.where(Order.created_at >= date_from)
-            stmt = stmt.where(Order.created_at >= date_from)
-        if date_to:
-            base = base.where(Order.created_at <= date_to)
-            stmt = stmt.where(Order.created_at <= date_to)
+        
+        # Build conditions for filtering
+        conditions = {
+            "status": (
+                lambda: bool(status),
+                Order.status == status if status else None,
+            ),
+            "date_from": (
+                lambda: date_from is not None,
+                Order.created_at >= date_from if date_from is not None else None,
+            ),
+            "date_to": (
+                lambda: date_to is not None,
+                Order.created_at <= date_to if date_to is not None else None,
+            ),
+        }
+        
+        stmt = SharedOperations.build_filtered_query(stmt, conditions)
         stmt = stmt.order_by(Order.created_at.asc())
-        total = db.session.scalar(select(func.count()).select_from(base.subquery()))
-        rows = db.session.execute(stmt.offset(offset).limit(limit)).scalars().all()
-        responses = [to_ops_response(order) for order in rows]
+        
+        def transform(order):
+            response = to_ops_response(order)
+            return response
+        
+        responses, total = SharedOperations.paginate_query(
+            base_query=stmt,
+            model_class=Order,
+            limit=limit,
+            offset=offset,
+            transform_fn=transform,
+        )
         responses.sort(key=lambda o: o.urgency_rank)
-        return responses, total or 0
+        return responses, total
 
     @staticmethod
     def get_order(order_id: int) -> OrderResponse:

@@ -7,6 +7,7 @@ from app.middleware.error_handler import DomainError
 from app.models import User
 from app.models.enums import Role
 from app.schemas.users import UserListItem, UserDetailResponse
+from app.services.shared_queries import SharedOperations
 
 def list_users(
     q: str | None = None,
@@ -18,33 +19,33 @@ def list_users(
     """List users with optional filters and pagination."""
     query = select(User)
     
-    # Apply filters
-    if q:
-        search = f"%{q}%"
-        query = query.where(
+    # Build conditions dict: (condition_check_fn, where_clause)
+    conditions = {
+        "search": (
+            lambda: bool(q),
             or_(
-                User.email.ilike(search),
-                User.full_name.ilike(search),
-            )
-        )
+                User.email.ilike(f"%{q}%"),
+                User.full_name.ilike(f"%{q}%"),
+            ) if q else None,
+        ),
+        "role": (
+            lambda: role is not None,
+            User.role == role if role is not None else None,
+        ),
+        "active": (
+            lambda: is_active is not None,
+            User.is_active == is_active if is_active is not None else None,
+        ),
+    }
     
-    if role is not None:
-        query = query.where(User.role == role)
+    # Apply filters
+    query = SharedOperations.build_filtered_query(query, conditions)
     
-    if is_active is not None:
-        query = query.where(User.is_active == is_active)
+    # Apply ordering
+    query = query.order_by(User.created_at.desc())
     
-    # Get total count
-    count_query = select(func.count()).select_from(query.subquery())
-    total = db.session.execute(count_query).scalar_one()
-    
-    # Apply pagination and ordering
-    query = query.order_by(User.created_at.desc()).limit(limit).offset(offset)
-    
-    users = db.session.execute(query).scalars().all()
-    
-    return [
-        UserListItem(
+    def transform(user):
+        return UserListItem(
             id=user.id,
             email=user.email,
             full_name=user.full_name,
@@ -54,8 +55,15 @@ def list_users(
             created_at=user.created_at,
             updated_at=user.updated_at,
         )
-        for user in users
-    ], total
+    
+    users, total = SharedOperations.paginate_query(
+        base_query=query,
+        model_class=User,
+        limit=limit,
+        offset=offset,
+        transform_fn=transform,
+    )
+    return users, total
 
 def get_user(user_id: int) -> UserDetailResponse:
     """Get user details by ID."""
